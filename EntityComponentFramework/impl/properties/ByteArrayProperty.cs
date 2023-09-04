@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Text;
-using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
     public class ByteArrayProperty : Property<byte[]>
     {
-        #region Properties
-        public override object Data => _value;
+        #region Constructors
+        public ByteArrayProperty(Entity owner, string name, byte[] defaultValue) : base(owner, name, defaultValue) { }
+        public ByteArrayProperty(Entity owner, string name) : base(owner, name, new byte[] { }) { }
         #endregion
 
         #region Methods
-        protected override Outcome Convert(object data, out byte[] value)
+        protected override Outcome ConvertToValue(object? data, out byte[]? value)
         {
+            if (data == null)
+            {
+                value = null;
+                return Outcome.Success();
+            }
             if (data is string str)
             {
                 value = Encoding.Default.GetBytes(str);

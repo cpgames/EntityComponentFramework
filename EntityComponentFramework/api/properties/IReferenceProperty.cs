@@ -1,22 +1,26 @@
-﻿using cpGames.core.EntityComponentFramework.impl;
-
-namespace cpGames.core.EntityComponentFramework
+﻿namespace cpGames.core.EntityComponentFramework
 {
-    public interface IReferenceProperty : IProperty<Address>
+    public interface IReferenceResolverComponent : IComponent
     {
-        #region Properties
-        Entity TargetEntity { get; }
-        Address TargetAddress { get; }
-        Id TargetId { get; }
-        #endregion
-
         #region Methods
-        Outcome SetId<TEntityManager>(Id id) where TEntityManager : IEntityManager;
-        Outcome HasTarget();
-        Outcome GetTargetEntity(out Entity target);
+        Outcome ResolveReference(Address address, out IComponent? component);
+        Outcome ConvertReferenceToAddress(IComponent component, out Address address);
+        #endregion
+    }
 
-        Outcome GetTargetComponent<TComponent>(out TComponent targetComponent)
-            where TComponent : class, IComponent;
+    public interface IReferenceProperty : IProperty
+    {
+        #region Methods
+        Outcome HasTarget();
+        #endregion
+    }
+
+    public interface IReferenceProperty<TComponent> : IProperty<TComponent?>, IReferenceProperty
+        where TComponent : class, IComponent
+    {
+        #region Methods
+        Outcome GetOtherComponent<TOtherComponent>(out TOtherComponent? otherComponent)
+            where TOtherComponent : class, IComponent;
         #endregion
     }
 }

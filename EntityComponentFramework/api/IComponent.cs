@@ -1,4 +1,5 @@
-﻿using cpGames.core.EntityComponentFramework.impl;
+﻿using System.Collections.Generic;
+using cpGames.core.EntityComponentFramework.impl;
 using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework
@@ -6,7 +7,9 @@ namespace cpGames.core.EntityComponentFramework
     public interface IComponent
     {
         #region Properties
-        Entity? Entity { get; }
+        Entity Entity { get; }
+        Id Id { get; }
+        IEnumerable<IProperty> Properties { get; }
 
         ISignalOutcome ConnectedSignal { get; }
         ISignalOutcome DisconnectedSignal { get; }
@@ -15,6 +18,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Methods
         Outcome Connect(Entity entity);
         Outcome Disconnect();
+        Outcome GetEntity(out Entity entity);
         #endregion
     }
 }

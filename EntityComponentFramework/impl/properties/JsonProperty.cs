@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -9,26 +10,36 @@ namespace cpGames.core.EntityComponentFramework.impl
         where TModel : class
     {
         #region Methods
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
             var property = (JsonProperty<TModel>)value;
-            writer.WriteRawValue((string)property.Data);
+            if (!property.GetData(out var data))
+            {
+                writer.WriteNull();
+                return;
+            }
+            writer.WriteRawValue((string)data!);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(
+            JsonReader reader,
+            Type objectType,
+            object? existingValue,
+            JsonSerializer serializer)
         {
-            if (!(existingValue is JsonProperty<TModel> property))
+            if (existingValue is not JsonProperty<TModel> property)
             {
-                throw new Exception("No existing value");
+                return null;
             }
             var jsonObject = JObject.Load(reader);
             var model = jsonObject.ToObject<TModel>(serializer);
             var setOutcome = property.Set(model);
-            if (!setOutcome)
-            {
-                throw new Exception(setOutcome.ErrorMessage);
-            }
-            return existingValue;
+            return !setOutcome ? null : existingValue;
         }
 
         public override bool CanConvert(Type objectType)
@@ -38,14 +49,14 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
     }
 
-    public abstract class JsonProperty<TModel> : Property<TModel>, IJsonProperty<TModel>
+    public abstract class JsonProperty<TModel> : Property<TModel?>, IJsonProperty<TModel>
         where TModel : class
     {
         #region Nested type: JsonComparer
-        private class JsonComparer : EqualityComparer<TModel>
+        private class JsonComparer : EqualityComparer<TModel?>
         {
             #region Methods
-            public override bool Equals(TModel x, TModel y)
+            public override bool Equals(TModel? x, TModel? y)
             {
                 if (ReferenceEquals(x, y))
                 {
@@ -56,58 +67,100 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return jsonX == jsonY;
             }
 
-            public override int GetHashCode(TModel obj)
+            public override int GetHashCode(TModel? obj)
             {
-                return obj.GetHashCode();
+                return obj != null ? obj.GetHashCode() : 0;
             }
             #endregion
         }
         #endregion
 
         #region Fields
-        private string _jsonString;
+        private string _jsonString = string.Empty;
         #endregion
 
         #region Properties
-        protected override EqualityComparer<TModel> ValueComparer { get; } = new JsonComparer();
+        protected override EqualityComparer<TModel?> ValueComparer { get; } = new JsonComparer();
+        #endregion
+
+        #region Constructors
+        protected JsonProperty(Entity owner, string name, TModel defaultValue) : base(owner, name, defaultValue) { }
+        protected JsonProperty(Entity owner, string name) : base(owner, name, null) { }
         #endregion
 
         #region IJsonProperty<TModel> Members
-        public override object Data => _jsonString;
-
-        public Outcome Clone(out TModel value)
+        public Outcome Clone(out TModel? value)
         {
-            return Convert(Data, out value);
+            value = default;
+            return
+                GetData(out var data) &&
+                ConvertToValue(data, out value);
+        }
+
+        public Outcome RefreshJson()
+        {
+            if (_value == null)
+            {
+                return Outcome.Success();
+            }
+            try
+            {
+                _jsonString = JsonConvert.SerializeObject(_value);
+            }
+            catch (Exception e)
+            {
+                return Outcome.Fail(e.Message);
+            }
+            return Outcome.Success();
         }
         #endregion
 
         #region Methods
-        protected override Outcome Convert(object data, out TModel value)
+        protected override Outcome ConvertToValue(object? data, out TModel? value)
         {
+            value = default;
             if (data == null)
             {
-                value = default;
                 return Outcome.Success();
             }
-            value = (TModel)JsonConvert.DeserializeObject((string)data, typeof(TModel),
-                new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.All,
-                    MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead
-                });
-            if (value == null)
+            object? valueObj;
+            try
             {
-                return Outcome.Fail($"Failed to convert <{data.GetType().Name}> to <{typeof(TModel).Name}>.");
+                string strData;
+                if (data is byte[] bytes)
+                {
+                    strData = Encoding.UTF8.GetString(bytes);
+                }
+                else
+                {
+                    strData = (string)data;
+                }
+                valueObj = JsonConvert.DeserializeObject(strData, typeof(TModel));
             }
+            catch (Exception e)
+            {
+                return Outcome.Fail(e.Message);
+            }
+            if (valueObj != null)
+            {
+                value = (TModel)valueObj;
+            }
+            return value == null ?
+                Outcome.Fail($"Failed to convert <{data.GetType().Name}> to <{typeof(TModel).Name}>.") :
+                Outcome.Success();
+        }
+
+        protected override Outcome ConvertToData(TModel? value, out object? data)
+        {
+            data = _jsonString;
             return Outcome.Success();
         }
 
-        protected override Outcome UpdateValue(TModel value)
+        protected override Outcome UpdateValue(TModel? value)
         {
             try
             {
-                _jsonString = JsonConvert.SerializeObject(value, Formatting.Indented,
-                    new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
+                _jsonString = JsonConvert.SerializeObject(value);
             }
             catch (Exception e)
             {

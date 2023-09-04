@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Globalization;
-using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
     public class DateTimeProperty : Property<DateTime>, IDateTimeProperty
     {
-        #region IDateTimeProperty Members
-        public override object Data => _value.ToString("yyyy-MM-dd HH:mm:ss");
+        #region Constructors
+        public DateTimeProperty(Entity owner, string name, DateTime defaultValue = default) : base(owner, name, defaultValue) { }
+        #endregion
 
+        #region IDateTimeProperty Members
         public string ValueToHHmm()
         {
             return _value.ToString("HH:mm");
@@ -21,16 +22,31 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
-        protected override Outcome Convert(object data, out DateTime value)
+        protected override Outcome ConvertToValue(object? data, out DateTime value)
         {
+            if (data == null)
+            {
+                value = default;
+                return Outcome.Success();
+            }
             if (data is DateTime dateTime)
             {
                 value = dateTime;
             }
-            else if (!DateTime.TryParse((string)data, CultureInfo.InvariantCulture, DateTimeStyles.None, out value))
+            else if (!DateTime.TryParse(
+                         (string)data,
+                         CultureInfo.InvariantCulture,
+                         DateTimeStyles.None,
+                         out value))
             {
                 return Outcome.Fail($"Failed to convert {(string)data} to DateTime.");
             }
+            return Outcome.Success();
+        }
+
+        protected override Outcome ConvertToData(DateTime value, out object? data)
+        {
+            data = value.ToString("yyyy-MM-dd HH:mm:ss");
             return Outcome.Success();
         }
         #endregion

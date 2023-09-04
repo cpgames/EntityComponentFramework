@@ -1,22 +1,26 @@
-﻿using cpGames.core.EntityComponentFramework.impl;
+﻿using System;
+using cpGames.core.EntityComponentFramework.impl;
 using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework
 {
-    public interface IProperty : IComponent
+    public interface IProperty
     {
         #region Properties
         string Name { get; }
-        object Data { get; }
         Entity Owner { get; }
-        ISignalOutcome BeginModifySignal { get; }
-        ISignalOutcome EndModifySignal { get; }
+        ISignalOutcome ValueGetSignal { get; }
+        ISignalOutcome<object?> BeginValueSetSignal { get; }
+        ISignalOutcome<object?> EndValueSetSignal { get; }
+        Type ValueType { get; }
         #endregion
 
         #region Methods
-        Outcome SetObject(object data);
+        Outcome SetData(object? data);
+        Outcome GetData(out object? data);
+        Outcome GetValueObj(out object? valueObj);
         Outcome UpdateValue();
-        bool ValueEquals(object value);
+        Outcome ValueEquals(object? value);
         string ValueToString();
         #endregion
     }
@@ -24,14 +28,16 @@ namespace cpGames.core.EntityComponentFramework
     public interface IProperty<TValue> : IProperty
     {
         #region Properties
-        TValue Value { get; }
+        TValue Value { get; set; }
         #endregion
 
         #region Methods
         Outcome Set(TValue value);
-        TValue Get();
+        Outcome Set(IProperty<TValue> otherProperty);
+        Outcome Get(out TValue? value);
         Outcome ConnectToProperty(IProperty<TValue> otherProperty);
         Outcome DisconnectProperties();
+        Outcome Equals(TValue value);
         #endregion
     }
 }

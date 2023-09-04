@@ -1,17 +1,16 @@
 ﻿using System;
-using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
     public abstract class EnumProperty<TEnum> : Property<TEnum>, IEnumProperty<TEnum>
         where TEnum : struct
     {
-        #region IEnumProperty<TEnum> Members
-        public override object Data => _value.ToString();
+        #region Constructors
+        protected EnumProperty(Entity owner, string name, TEnum defaultValue) : base(owner, name, defaultValue) { }
         #endregion
 
         #region Methods
-        protected override Outcome Convert(object data, out TEnum value)
+        protected override Outcome ConvertToValue(object? data, out TEnum value)
         {
             if (data is string)
             {
@@ -26,6 +25,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             value = default;
             return Outcome.Fail($"Failed to convert <{data}> to <{typeof(TEnum).Name}>.");
+        }
+
+        protected override Outcome ConvertToData(TEnum value, out object? data)
+        {
+            data = value.ToString();
+            return Outcome.Success();
         }
         #endregion
     }

@@ -6,16 +6,31 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class StringPropertyConverter : JsonConverter
     {
         #region Methods
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            writer.WriteValue(((StringProperty)value).Value);
+            if (value == null ||
+                !((StringProperty)value).Get(out var str))
+            {
+                writer.WriteNull();
+                return;
+            }
+            writer.WriteValue(str);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(
+            JsonReader reader,
+            Type objectType,
+            object? existingValue,
+            JsonSerializer serializer)
         {
-            if (!(existingValue is StringProperty property))
+            if (existingValue is not StringProperty property)
             {
                 throw new Exception("No existing value");
+            }
+            if (reader.Value == null)
+            {
+                property.Set(string.Empty);
+                return existingValue;
             }
             var setOutcome = property.Set((string)reader.Value);
             if (!setOutcome)
@@ -27,11 +42,17 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public override bool CanConvert(Type objectType)
         {
-            return typeof(StringProperty).IsAssignableFrom(objectType);
+            return objectType.IsAssignableFrom(typeof(StringProperty));
         }
         #endregion
     }
 
     [JsonConverter(typeof(StringPropertyConverter))]
-    public class StringProperty : Property<string>, IStringProperty { }
+    public class StringProperty : Property<string>, IStringProperty
+    {
+        #region Constructors
+        public StringProperty(Entity owner, string name, string defaultValue) : base(owner, name, defaultValue) { }
+        public StringProperty(Entity owner, string name) : base(owner, name, string.Empty) { }
+        #endregion
+    }
 }
