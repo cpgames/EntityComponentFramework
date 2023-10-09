@@ -88,6 +88,17 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Fail($"List does not contain entry {entry}");
         }
 
+        public Outcome Clear()
+        {
+            var getOutcome = Get(out var value);
+            if (!getOutcome)
+            {
+                return getOutcome;
+            }
+            value!.Clear();
+            return Outcome.Success();
+        }
+
         public IEnumerator<TValue> GetEnumerator()
         {
             return Value.GetEnumerator();

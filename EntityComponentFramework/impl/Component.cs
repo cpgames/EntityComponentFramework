@@ -113,7 +113,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
                 if (!property!.GetType().IsTypeOrDerived(propertyInfo.PropertyType))
                 {
-                    return Outcome.Fail($"Property <{propertyAttribute.Name}> is not of type <{propertyInfo.PropertyType.Name}>.");
+                    return Outcome.Fail($"Property <{propertyAttribute.Name}> is not of type <{propertyInfo.PropertyType.Name}> in <{GetType().Name}>.");
                 }
                 propertyInfo.SetValue(this, property, null);
                 _properties.Add(property);

@@ -32,6 +32,7 @@ namespace cpGames.core.EntityComponentFramework
         Outcome AddEntry(TValue entry);
         Outcome RemoveEntry(TValue entry);
         Outcome HasEntry(TValue entry);
+        Outcome Clear();
         #endregion
     }
 }
