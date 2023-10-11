@@ -1,32 +1,48 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using cpGames.core.RapidIoC;
+using Newtonsoft.Json;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public abstract class Component : View, IComponent
     {
+        #region Fields
+        private readonly List<IProperty> _properties = new();
+        #endregion
+
+        #region Properties
+        public bool IsConnected { get; private set; }
+        #endregion
+
         #region IComponent Members
-        public Entity? Entity { get; private set; }
+        public Entity Entity { get; private set; } = null!;
+        public Id Id => Entity.Id;
+        public IEnumerable<IProperty> Properties => _properties;
         public ISignalOutcome ConnectedSignal { get; } = new LazySignalOutcome();
         public ISignalOutcome DisconnectedSignal { get; } = new LazySignalOutcome();
 
         public Outcome Connect(Entity entity)
         {
-            if (Entity != null)
+            if (IsConnected)
             {
                 return Outcome.Fail($"Component <{GetType().Name}> is already connected.");
             }
             Entity = entity;
+            IsConnected = true;
             return
+                RegisterWithContext() &&
                 ConnectRequiredComponents() &&
+                ConnectRequiredProperties() &&
                 ConnectInternal() &&
                 ConnectedSignal.DispatchResult();
         }
 
         public Outcome Disconnect()
         {
-            if (Entity == null)
+            if (!IsConnected)
             {
                 return Outcome.Fail($"Component <{GetType().Name}> is already disconnected.");
             }
@@ -37,8 +53,23 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return disconnectInternalOutcome;
             }
-            Entity = null;
-            return DisconnectedSignal.DispatchResult();
+            Entity = null!;
+            IsConnected = false;
+            _properties.Clear();
+            return
+                UnregisterFromContextInternal() &&
+                DisconnectedSignal.DispatchResult();
+        }
+
+        public Outcome GetEntity(out Entity entity)
+        {
+            if (!IsConnected)
+            {
+                entity = null!;
+                return Outcome.Fail($"Component <{GetType().Name}> is not connected.");
+            }
+            entity = Entity;
+            return Outcome.Success();
         }
         #endregion
 
@@ -53,16 +84,53 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
+        private Outcome ConnectRequiredProperties()
+        {
+            var propertyInfos = GetType().GetProperties().Where(x => x.HasAttribute<PropertyAttribute>());
+            foreach (var propertyInfo in propertyInfos)
+            {
+                var propertyAttribute = propertyInfo.GetAttribute<PropertyAttribute>()!;
+                IProperty? property;
+                if (propertyAttribute.Type != null)
+                {
+                    var addPropertyOutcome = Entity.AddProperty(
+                        propertyAttribute.Name,
+                        propertyAttribute.Type,
+                        propertyAttribute.DefaultValue,
+                        out property);
+                    if (!addPropertyOutcome)
+                    {
+                        return addPropertyOutcome;
+                    }
+                }
+                else
+                {
+                    var getPropertyOutcome = Entity.GetProperty(propertyAttribute.Name, out property);
+                    if (!getPropertyOutcome)
+                    {
+                        return getPropertyOutcome;
+                    }
+                }
+                if (!property!.GetType().IsTypeOrDerived(propertyInfo.PropertyType))
+                {
+                    return Outcome.Fail($"Property <{propertyAttribute.Name}> is not of type <{propertyInfo.PropertyType.Name}> in <{GetType().Name}>.");
+                }
+                propertyInfo.SetValue(this, property, null);
+                _properties.Add(property);
+            }
+            return Outcome.Success();
+        }
+
         private Outcome ConnectRequiredComponents()
         {
-            var properties = GetType().GetProperties().Where(x => x.HasAttribute<RequiredComponentAttribute>());
-            foreach (var property in properties)
+            var propertyInfos = GetType().GetProperties().Where(x => x.HasAttribute<RequiredComponentAttribute>());
+            foreach (var propertyInfo in propertyInfos)
             {
-                if (property.PropertyType == GetType())
+                if (propertyInfo.PropertyType == GetType())
                 {
                     return Outcome.Fail($"Component <{GetType().Name}> has a property that references itself.");
                 }
-                var connectPropertyOutcome = ConnectRequiredProperty(Entity, property);
+                var connectPropertyOutcome = ConnectRequiredComponent(Entity, propertyInfo);
                 if (!connectPropertyOutcome)
                 {
                     return connectPropertyOutcome;
@@ -71,33 +139,29 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        private Outcome ConnectRequiredProperty(Entity target, PropertyInfo property)
+        private Outcome ConnectRequiredComponent(Entity target, PropertyInfo propertyInfo)
         {
-            var requiredComponentAttribute = property.GetAttribute<RequiredComponentAttribute>();
+            var requiredComponentAttribute = propertyInfo.GetAttribute<RequiredComponentAttribute>();
             if (requiredComponentAttribute == null)
             {
-                return Outcome.Fail($"{property.Name} is missing RequiredComponentAttribute.");
+                return Outcome.Fail($"{propertyInfo.Name} is missing RequiredComponentAttribute.");
             }
-            if (target.GetComponent(property.PropertyType, out var component))
+            if (target.GetComponent(propertyInfo.PropertyType, out var component))
             {
-                property.SetValue(this, component, null);
+                propertyInfo.SetValue(this, component, null);
                 return Outcome.Success();
             }
-            if (requiredComponentAttribute.addIfMissing)
+            if (requiredComponentAttribute.Type != default)
             {
-                var addComponentOutcome = target.AddComponent(property.PropertyType, out component);
-                if (!target.AddComponent(property.PropertyType, out component))
+                var addComponentOutcome = target.AddComponent(requiredComponentAttribute.Type, out component);
+                if (!addComponentOutcome)
                 {
                     return addComponentOutcome;
                 }
-                property.SetValue(this, component, null);
+                propertyInfo.SetValue(this, component, null);
                 return Outcome.Success();
             }
-            if (requiredComponentAttribute.searchParent && target.Parent != null)
-            {
-                return ConnectRequiredProperty(target.Parent, property);
-            }
-            return Outcome.Fail($"Component <{GetType().Name}> is missing required component <{property.PropertyType.Name}>.");
+            return Outcome.Fail($"Component <{GetType().Name}> is missing required component <{propertyInfo.PropertyType.Name}>.");
         }
 
         private Outcome CheckIfStillRequired(Entity target)
@@ -108,21 +172,9 @@ namespace cpGames.core.EntityComponentFramework.impl
                 {
                     continue;
                 }
-
-                var properties = component.GetType().GetProperties()
-                    .Where(x => x.HasAttribute<RequiredComponentAttribute>());
-                if (properties.Any(x => GetType().IsTypeOrDerived(x.PropertyType)))
+                if (component.GetType().GetProperties().Any(x => x.PropertyType == GetType() && x.GetValue(component, null) == this))
                 {
                     return Outcome.Fail($"Component <{GetType().Name}> can not be removed, it is still required by <{component.GetType().Name}>.");
-                }
-            }
-
-            foreach (var child in target)
-            {
-                var checkIfStillRequiredOutcome = CheckIfStillRequired(child);
-                if (!checkIfStillRequiredOutcome)
-                {
-                    return checkIfStillRequiredOutcome;
                 }
             }
             return Outcome.Success();

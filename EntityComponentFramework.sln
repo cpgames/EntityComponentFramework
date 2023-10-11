@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityComponentFramework", "EntityComponentFramework\EntityComponentFramework.csproj", "{0E448DF9-4A31-4F33-8E64-6D3225986B22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EntityComponentFramework", "EntityComponentFramework\EntityComponentFramework.csproj", "{0E448DF9-4A31-4F33-8E64-6D3225986B22}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RapidIoC", "..\RapidIoC\RapidIoC\RapidIoC.csproj", "{DC479184-1435-45B6-BF05-4C160419F175}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{CEB2ED92-0E39-4BBA-96DE-E0383E2A73DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{0E448DF9-4A31-4F33-8E64-6D3225986B22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E448DF9-4A31-4F33-8E64-6D3225986B22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E448DF9-4A31-4F33-8E64-6D3225986B22}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC479184-1435-45B6-BF05-4C160419F175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC479184-1435-45B6-BF05-4C160419F175}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC479184-1435-45B6-BF05-4C160419F175}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC479184-1435-45B6-BF05-4C160419F175}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB2ED92-0E39-4BBA-96DE-E0383E2A73DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB2ED92-0E39-4BBA-96DE-E0383E2A73DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB2ED92-0E39-4BBA-96DE-E0383E2A73DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB2ED92-0E39-4BBA-96DE-E0383E2A73DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
