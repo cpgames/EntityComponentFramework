@@ -6,12 +6,18 @@ namespace cpGames.core.EntityComponentFramework.impl
         where TEnum : struct
     {
         #region Constructors
+        protected EnumProperty(Entity owner, string name) : base(owner, name, default) { }
         protected EnumProperty(Entity owner, string name, TEnum defaultValue) : base(owner, name, defaultValue) { }
         #endregion
 
         #region Methods
         protected override Outcome ConvertToValue(object? data, out TEnum value)
         {
+            if (data is TEnum)
+            {
+                value = (TEnum)data;
+                return Outcome.Success();
+            }
             if (data is string)
             {
                 return Enum.TryParse((string)data, out value) ?

@@ -2,6 +2,9 @@
 {
     public class IntProperty : Property<int>
     {
-        public IntProperty(Entity owner, string name, int defaultValue = 0) : base(owner, name, defaultValue) { }
+        #region Constructors
+        public IntProperty(Entity owner, string name) : this(owner, name, 0) { }
+        public IntProperty(Entity owner, string name, int defaultValue) : base(owner, name, defaultValue) { }
+        #endregion
     }
 }

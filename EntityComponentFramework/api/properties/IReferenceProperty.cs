@@ -1,6 +1,6 @@
 ﻿namespace cpGames.core.EntityComponentFramework
 {
-    public interface IReferenceResolverComponent : IComponent
+    public interface IReferenceResolver : IComponent
     {
         #region Methods
         Outcome ResolveReference(Address address, out IComponent? component);

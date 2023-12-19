@@ -1,4 +1,5 @@
 ﻿using System;
+using cpGames.core.RapidIoC;
 using Newtonsoft.Json;
 
 namespace cpGames.core.EntityComponentFramework.impl
@@ -51,6 +52,10 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class ReferenceProperty<TComponent> : Property<TComponent?>, IReferenceProperty<TComponent>
         where TComponent : class, IComponent
     {
+        #region Fields
+        private IReferenceResolver? _referenceResolver;
+        #endregion
+
         #region Constructors
         public ReferenceProperty(Entity owner, string name) : base(owner, name, null) { }
         #endregion
@@ -98,6 +103,14 @@ namespace cpGames.core.EntityComponentFramework.impl
             return base.ConvertToValue(data, out value);
         }
 
+        private Outcome GetReferenceResolver()
+        {
+            return
+                _referenceResolver != null ?
+                    Outcome.Success() :
+                    Rapid.GetBindingValue(Rapid.RootKey, out _referenceResolver);
+        }
+
         private Outcome GetValueFromAddress(Address address, out TComponent? value)
         {
             value = null;
@@ -107,8 +120,8 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             IComponent? component = default;
             var getEntityOutcome =
-                Owner.GetComponent<IReferenceResolverComponent>(out var referenceResolver) &&
-                referenceResolver!.ResolveReference(address, out component);
+                GetReferenceResolver() &&
+                _referenceResolver!.ResolveReference(address, out component);
             if (!getEntityOutcome)
             {
                 return getEntityOutcome;
@@ -128,16 +141,16 @@ namespace cpGames.core.EntityComponentFramework.impl
                 data = Address.INVALID;
                 return Outcome.Success();
             }
-            Address address = Address.INVALID;
+            var address = Address.INVALID;
             var getAddressOutcome =
-                Owner.GetComponent<IReferenceResolverComponent>(out var referenceResolver) &&
-                referenceResolver!.ConvertReferenceToAddress(value, out address);
+                GetReferenceResolver() &&
+                _referenceResolver!.ConvertReferenceToAddress(value, out address);
             if (!getAddressOutcome)
             {
-                data = null;
+                data = Address.INVALID;
                 return getAddressOutcome;
             }
-            data = address.ToString();
+            data = address;
             return Outcome.Success();
         }
         #endregion

@@ -132,6 +132,20 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
+        public Outcome GetNonDefault(out TValue? value)
+        {
+            var getOutcome = Get(out value);
+            if (!getOutcome)
+            {
+                return getOutcome;
+            }
+            if (ValueComparer.Equals(value!, _defaultValue))
+            {
+                return Outcome.Fail($"<{Owner}:{Name}> Value <{value}> is default value.");
+            }
+            return Outcome.Success();
+        }
+
         public Outcome ValueEquals(object? data)
         {
             var beginGetOutcome = ValueGetSignal.DispatchResult();
@@ -141,18 +155,46 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (data == null)
             {
-                return Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
+                return _value == null ? 
+                    Outcome.Success() : 
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
             }
-            if (((TValue)data).Equals(_value))
+            var convertOutcome = ConvertToValue(data, out var value);
+            if (!convertOutcome)
             {
-                return Outcome.Success();
+                return convertOutcome;
             }
-            return Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.");
+            return value!.Equals(_value) ? 
+                Outcome.Success() : 
+                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.");
+        }
+
+        public Outcome ValueNotEquals(object? data)
+        {
+            var beginGetOutcome = ValueGetSignal.DispatchResult();
+            if (!beginGetOutcome)
+            {
+                return beginGetOutcome;
+            }
+            if (data == null)
+            {
+                return _value != null ? 
+                    Outcome.Success() : 
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
+            }
+            var convertOutcome = ConvertToValue(data, out var value);
+            if (!convertOutcome)
+            {
+                return convertOutcome;
+            }
+            return !value!.Equals(_value) ? 
+                Outcome.Success() : 
+                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.");
         }
 
         public virtual string ValueToString()
         {
-            return _value!.ToString();
+            return _value == null ? string.Empty : _value!.ToString();
         }
 
         public Outcome ConnectToProperty(IProperty<TValue> otherProperty)
@@ -224,6 +266,11 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         protected virtual Outcome ConvertToValue(object? data, out TValue? value)
         {
+            if (data == null)
+            {
+                value = default;
+                return Outcome.Success();
+            }
             if (data is TValue)
             {
                 value = (TValue)data;

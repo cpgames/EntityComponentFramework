@@ -6,7 +6,8 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class DateTimeProperty : Property<DateTime>, IDateTimeProperty
     {
         #region Constructors
-        public DateTimeProperty(Entity owner, string name, DateTime defaultValue = default) : base(owner, name, defaultValue) { }
+        public DateTimeProperty(Entity owner, string name) : this(owner, name, default) { }
+        public DateTimeProperty(Entity owner, string name, DateTime defaultValue) : base(owner, name, defaultValue) { }
         #endregion
 
         #region IDateTimeProperty Members

@@ -42,7 +42,8 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType.IsAssignableFrom(typeof(StringProperty));
+            var isAssignable = objectType.IsAssignableFrom(typeof(StringProperty));
+            return isAssignable;
         }
         #endregion
     }

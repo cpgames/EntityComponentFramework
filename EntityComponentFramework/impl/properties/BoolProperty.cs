@@ -5,7 +5,8 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class BoolProperty : Property<bool>, IBoolProperty
     {
         #region Constructors
-        public BoolProperty(Entity owner, string name, bool defaultValue = false) : base(owner, name, defaultValue) { }
+        public BoolProperty(Entity owner, string name) : this(owner, name, false) { }
+        public BoolProperty(Entity owner, string name, bool defaultValue) : base(owner, name, defaultValue) { }
         #endregion
 
         #region Methods
