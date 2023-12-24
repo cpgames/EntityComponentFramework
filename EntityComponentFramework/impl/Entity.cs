@@ -15,7 +15,6 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         #region Properties
         public Id Id => _id;
-        public IdGenerator? IdGenerator { get; set; }
         public IProperty this[string name]
         {
             get
@@ -288,6 +287,19 @@ namespace cpGames.core.EntityComponentFramework.impl
             component = (TComponent)componentBase!;
             return Outcome.Success();
         }
+        
+        public Outcome AddComponent<TComponent>(Type componentType, out TComponent? component, params object[] args)
+            where TComponent : class, IComponent
+        {
+            var addComponentOutcome = AddComponent(componentType, out var componentBase, args);
+            if (!addComponentOutcome)
+            {
+                component = null;
+                return addComponentOutcome;
+            }
+            component = (TComponent)componentBase!;
+            return Outcome.Success();
+        }
 
         public Outcome RemoveComponent<TComponent>() where TComponent : IComponent
         {
@@ -371,6 +383,14 @@ namespace cpGames.core.EntityComponentFramework.impl
                     }
                 }
                 _components.Clear();
+                foreach (var property in _properties.Values)
+                {
+                    var unlinkOutcome = property.Unlink();
+                    if (!unlinkOutcome)
+                    {
+                        return unlinkOutcome;
+                    }
+                }
             }
             return Outcome.Success();
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using cpGames.core.RapidIoC;
 
@@ -7,13 +8,21 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class ListProperty<TValue> : Property<List<TValue>>, IListProperty<TValue>
     {
         #region Constructors
-        public ListProperty(Entity owner, string name, List<TValue> defaultValue) : base(owner, name, defaultValue) { }
-        public ListProperty(Entity owner, string name) : base(owner, name, new List<TValue>()) { }
+        public ListProperty(Entity owner, string name, List<TValue> defaultValue) : base(owner, name, defaultValue) {
+            EntryAddedSignal.AddCommand(val => 
+                EntryObjAddedSignal.DispatchResult(val!) &&
+                EntryCountChangedSignal.DispatchResult());
+            EntryRemovedSignal.AddCommand(val =>
+                EntryObjRemovedSignal.DispatchResult(val!) &&
+                EntryCountChangedSignal.DispatchResult());
+        }
+        public ListProperty(Entity owner, string name) : this(owner, name, new List<TValue>()) { }
         #endregion
 
         #region IListProperty<TValue> Members
         public long Count => Value.Count;
         public bool Empty => Count == 0;
+        public Type EntryType => typeof(TValue);
         public ISignalOutcome<object> EntryObjAddedSignal { get; } = new LazySignalOutcome<object>();
         public ISignalOutcome<object> EntryObjRemovedSignal { get; } = new LazySignalOutcome<object>();
         public ISignalOutcome<TValue> EntryAddedSignal { get; } = new LazySignalOutcome<TValue>();
@@ -54,9 +63,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Fail($"List already contains entry {entry}");
             }
             value.Add(entry);
-            return
-                EntryAddedSignal.DispatchResult(entry) &&
-                EntryCountChangedSignal.DispatchResult();
+            return EntryAddedSignal.DispatchResult(entry);
         }
 
         public Outcome RemoveEntry(TValue entry)
@@ -71,9 +78,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Fail($"List does not contain entry {entry}");
             }
             value.Remove(entry);
-            return
-                EntryRemovedSignal.DispatchResult(entry) &&
-                EntryCountChangedSignal.DispatchResult();
+            return EntryRemovedSignal.DispatchResult(entry);
         }
 
         public Outcome HasEntry(TValue entry)
@@ -97,6 +102,68 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             value!.Clear();
             return Outcome.Success();
+        }
+
+        protected virtual Outcome ConvertEntry(object? data, out TValue? value)
+        {
+            if (data is TValue entry)
+            {
+                value = entry;
+                return Outcome.Success();
+            }
+            value = default;
+            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TValue)}");
+        }
+
+        protected override Outcome ConvertToValue(object? data, out List<TValue>? value)
+        {
+            if (data is IList list)
+            {
+                value = new List<TValue>();
+                foreach (var entry in list)
+                {
+                    var convertOutcome = ConvertEntry(entry, out var entryValue);
+                    if (!convertOutcome)
+                    {
+                        value = default;
+                        return convertOutcome;
+                    }
+                    value.Add(entryValue!);
+                }
+                return Outcome.Success();
+            }
+            return base.ConvertToValue(data, out value);
+        }
+
+        protected override Outcome CanLink(IProperty otherProperty)
+        {
+            if (otherProperty is IListProperty otherListProperty)
+            {
+                if (!EntryType.IsAssignableFrom(otherListProperty.EntryType))
+                {
+                    return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant");
+                }
+                return Outcome.Success();
+            }
+            return base.CanLink(otherProperty);
+        }
+
+        protected override Outcome LinkInternal(IProperty otherProperty)
+        {
+            var listProperty = (IListProperty)otherProperty;
+            return 
+                listProperty.EntryObjAddedSignal.AddCommand(val => EntryAddedSignal.DispatchResult((TValue)val), this) &&
+                listProperty.EntryObjRemovedSignal.AddCommand(val => EntryRemovedSignal.DispatchResult((TValue)val), this) &&
+                base.LinkInternal(otherProperty);
+        }
+
+        protected override Outcome UnlinkInternal(IProperty otherProperty)
+        {
+            var listProperty = (IListProperty)otherProperty;
+            return
+                listProperty.EntryObjAddedSignal.RemoveCommand(this) &&
+                listProperty.EntryObjRemovedSignal.RemoveCommand(this) &&
+                base.UnlinkInternal(otherProperty);
         }
 
         public IEnumerator<TValue> GetEnumerator()

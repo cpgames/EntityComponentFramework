@@ -7,7 +7,7 @@ namespace cpGames.core.EntityComponentFramework.impl
     public abstract class Property<TValue> : IProperty<TValue>
     {
         #region Fields
-        private IProperty<TValue>? _connectedProperty;
+        private IProperty? _linkedProperty;
         protected readonly TValue _defaultValue;
         protected TValue _value;
         #endregion
@@ -27,13 +27,9 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Events
-        private Outcome OnConnectedPropertyEndModify(object? v)
+        private Outcome OnLinkedEndModify(object? data)
         {
-            if (v == null)
-            {
-                return Outcome.Fail("Connected property returned null value");
-            }
-            return Set((TValue)v);
+            return SetData(data);
         }
         #endregion
 
@@ -197,41 +193,56 @@ namespace cpGames.core.EntityComponentFramework.impl
             return _value == null ? string.Empty : _value!.ToString();
         }
 
-        public Outcome ConnectToProperty(IProperty<TValue> otherProperty)
+        public Outcome Link(IProperty otherProperty)
         {
-            if (otherProperty == _connectedProperty)
+            if (otherProperty == _linkedProperty)
             {
                 return Outcome.Success();
             }
-            if (_connectedProperty != null)
-            {
-                var endGetOutcome = _connectedProperty.EndValueSetSignal.RemoveCommand(this);
-                if (!endGetOutcome)
-                {
-                    return endGetOutcome;
-                }
-            }
-            _connectedProperty = otherProperty;
-            TValue? connectedValue = default;
             return
-                _connectedProperty.EndValueSetSignal.AddCommand(OnConnectedPropertyEndModify, this) &&
-                _connectedProperty.Get(out connectedValue) &&
-                Set(connectedValue!);
+                Unlink() &&
+                CanLink(otherProperty) &&
+                LinkInternal(otherProperty);
         }
 
-        public Outcome DisconnectProperties()
+        protected virtual Outcome CanLink(IProperty otherProperty)
         {
-            if (_connectedProperty == null)
+            if (otherProperty.ValueType != ValueType)
+            {
+                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
+            }
+            return Outcome.Success();
+        }
+
+        protected virtual Outcome LinkInternal(IProperty otherProperty)
+        {
+            _linkedProperty = otherProperty;
+            return 
+                _linkedProperty.GetData(out var linkedValue) &&
+                SetData(linkedValue!) && 
+                otherProperty.EndValueSetSignal.AddCommand(OnLinkedEndModify, this);
+        }
+
+        public Outcome Unlink()
+        {
+            if (_linkedProperty == null)
             {
                 return Outcome.Success();
             }
-            var endGetOutcome = _connectedProperty.EndValueSetSignal.RemoveCommand(this);
-            if (!endGetOutcome)
+            var unlinkOutcome = UnlinkInternal(_linkedProperty);
+            if (!unlinkOutcome)
             {
-                return endGetOutcome;
+                return unlinkOutcome;
             }
-            _connectedProperty = null;
-            return Set(_defaultValue);
+            _linkedProperty = null;
+            return Outcome.Success();
+        }
+
+        protected virtual Outcome UnlinkInternal(IProperty otherProperty)
+        {
+            return
+                otherProperty.EndValueSetSignal.RemoveCommand(this) &&
+                Set(_defaultValue);
         }
 
         public Outcome Equals(TValue value)

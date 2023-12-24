@@ -23,6 +23,8 @@ namespace cpGames.core.EntityComponentFramework
         Outcome ValueEquals(object? value);
         Outcome ValueNotEquals(object? value);
         string ValueToString();
+        Outcome Link(IProperty otherProperty);
+        Outcome Unlink();
         #endregion
     }
 
@@ -37,8 +39,6 @@ namespace cpGames.core.EntityComponentFramework
         Outcome Set(IProperty<TValue> otherProperty);
         Outcome Get(out TValue? value);
         Outcome GetNonDefault(out TValue? value);
-        Outcome ConnectToProperty(IProperty<TValue> otherProperty);
-        Outcome DisconnectProperties();
         Outcome Equals(TValue value);
         #endregion
     }

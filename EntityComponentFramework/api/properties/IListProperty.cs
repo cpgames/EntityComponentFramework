@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using cpGames.core.RapidIoC;
 
@@ -9,6 +10,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Properties
         long Count { get; }
         bool Empty { get; }
+        Type EntryType { get; }
         ISignalOutcome<object> EntryObjAddedSignal { get; }
         ISignalOutcome<object> EntryObjRemovedSignal { get; }
         ISignalOutcome EntryCountChangedSignal { get; }

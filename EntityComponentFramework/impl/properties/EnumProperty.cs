@@ -29,8 +29,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 value = (TEnum)Enum.GetValues(typeof(TEnum)).GetValue(dataLong);
                 return Outcome.Success();
             }
-            value = default;
-            return Outcome.Fail($"Failed to convert <{data}> to <{typeof(TEnum).Name}>.");
+            return base.ConvertToValue(data, out value);
         }
 
         protected override Outcome ConvertToData(TEnum value, out object? data)
