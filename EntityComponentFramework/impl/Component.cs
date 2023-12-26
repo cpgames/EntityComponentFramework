@@ -13,13 +13,12 @@ namespace cpGames.core.EntityComponentFramework.impl
         private readonly List<IProperty> _properties = new();
         #endregion
 
-        #region Properties
-        public bool IsConnected { get; private set; }
-        #endregion
-
         #region IComponent Members
+        public bool IsConnected { get; private set; }
         public Entity Entity { get; private set; } = null!;
+
         public Id Id => Entity.Id;
+
         public IEnumerable<IProperty> Properties => _properties;
         public ISignalOutcome ConnectedSignal { get; } = new LazySignalOutcome();
         public ISignalOutcome DisconnectedSignal { get; } = new LazySignalOutcome();
@@ -57,7 +56,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             IsConnected = false;
             _properties.Clear();
             return
-                UnregisterFromContextInternal() &&
+                UnregisterFromContext() &&
                 DisconnectedSignal.DispatchResult();
         }
 

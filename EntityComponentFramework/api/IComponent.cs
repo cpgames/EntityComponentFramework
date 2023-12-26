@@ -7,6 +7,7 @@ namespace cpGames.core.EntityComponentFramework
     public interface IComponent
     {
         #region Properties
+        bool IsConnected { get; }
         Entity Entity { get; }
         Id Id { get; }
         IEnumerable<IProperty> Properties { get; }

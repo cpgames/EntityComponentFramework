@@ -160,6 +160,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return convertOutcome;
             }
+            if (value == null)
+            {
+                return _value == null ? 
+                    Outcome.Success() : 
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
+            }
             return value!.Equals(_value) ? 
                 Outcome.Success() : 
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.");
@@ -182,6 +188,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             if (!convertOutcome)
             {
                 return convertOutcome;
+            }
+            if (value == null)
+            {
+                return _value != null ? 
+                    Outcome.Success() : 
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
             }
             return !value!.Equals(_value) ? 
                 Outcome.Success() : 
