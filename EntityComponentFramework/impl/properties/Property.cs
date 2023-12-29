@@ -166,7 +166,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     Outcome.Success() : 
                     Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
             }
-            return value!.Equals(_value) ? 
+            return value.Equals(_value) ? 
                 Outcome.Success() : 
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.");
         }
@@ -195,9 +195,14 @@ namespace cpGames.core.EntityComponentFramework.impl
                     Outcome.Success() : 
                     Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
             }
-            return !value!.Equals(_value) ? 
+            return !value.Equals(_value) ? 
                 Outcome.Success() : 
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.");
+        }
+
+        public Outcome IsDefault()
+        {
+            return ValueEquals(_defaultValue);
         }
 
         public virtual string ValueToString()

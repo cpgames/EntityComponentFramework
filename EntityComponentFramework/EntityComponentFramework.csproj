@@ -11,11 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\core\RapidIoC\RapidIoC\RapidIoC.csproj" />
+    <ProjectReference Include="..\RapidIoC\RapidIoC\RapidIoC.csproj" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo Copying EntityComponentFramework build output to client folder...&#xD;&#xA;cd $(BaseOutputPath)\$(Configuration)\$(TargetFramework)&#xD;&#xA;copy EntityComponentFramework.dll %25PA_ROOT%25\Shared\CpCore\Assets\CpCore\Runtime\lib\ /Y&#xD;&#xA;copy EntityComponentFramework.pdb %25PA_ROOT%25\Shared\CpCore\Assets\CpCore\Runtime\lib\ /Y" />
-  </Target>
 
 </Project>

@@ -26,6 +26,18 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return property;
             }
         }
+
+        public IEnumerable<IProperty> Properties
+        {
+            get
+            {
+                lock (SyncRoot)
+                {
+                    return _properties.Values;
+                }
+            }
+        }
+
         public IEnumerable<IComponent> Components
         {
             get
@@ -287,7 +299,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             component = (TComponent)componentBase!;
             return Outcome.Success();
         }
-        
+
         public Outcome AddComponent<TComponent>(Type componentType, out TComponent? component, params object[] args)
             where TComponent : class, IComponent
         {
