@@ -65,7 +65,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             otherComponent = null;
             return
-                Get(out var component) &&
+                GetNonDefault(out var component) &&
                 component!.Entity.GetComponent(out otherComponent);
         }
 
