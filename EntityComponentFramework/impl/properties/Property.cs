@@ -22,7 +22,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             Owner = owner;
             Name = name;
             _defaultValue = defaultValue;
-            _value = defaultValue;
+            _value = Clone(defaultValue);
         }
         #endregion
 
@@ -312,6 +312,11 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             data = value;
             return Outcome.Success();
+        }
+
+        protected virtual TValue Clone(TValue value)
+        {
+            return value;
         }
 
         public override string ToString()

@@ -175,6 +175,11 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             return GetEnumerator();
         }
+
+        protected override List<TValue> Clone(List<TValue> value)
+        {
+            return new List<TValue>(value);
+        }
         #endregion
     }
 }
