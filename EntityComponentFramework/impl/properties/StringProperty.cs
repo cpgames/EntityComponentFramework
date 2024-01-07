@@ -55,5 +55,17 @@ namespace cpGames.core.EntityComponentFramework.impl
         public StringProperty(Entity owner, string name, string defaultValue) : base(owner, name, defaultValue) { }
         public StringProperty(Entity owner, string name) : base(owner, name, string.Empty) { }
         #endregion
+
+        #region Methods
+        protected override Outcome ConvertToValue(object? data, out string? value)
+        {
+            if (data == null)
+            {
+                value = string.Empty;
+                return Outcome.Success();
+            }
+            return base.ConvertToValue(data, out value);
+        }
+        #endregion
     }
 }

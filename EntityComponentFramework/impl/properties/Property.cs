@@ -29,7 +29,19 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Events
         private Outcome OnLinkedEndModify(object? data)
         {
-            return SetData(data);
+            var convertOutcome = ConvertToValue(data, out var value);
+            if (!convertOutcome)
+            {
+                return convertOutcome;
+            }
+            if (ValueComparer.Equals(_value, value!))
+            {
+                return Outcome.Success();
+            }
+            return
+                BeginValueSetSignal.DispatchResult(value) &&
+                UpdateValue(value!) &&
+                EndValueSetSignal.DispatchResult(value);
         }
         #endregion
 
@@ -102,6 +114,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             return
                 BeginValueSetSignal.DispatchResult(value) &&
+                Unlink(false) &&
                 UpdateValue(value) &&
                 EndValueSetSignal.DispatchResult(value);
         }
@@ -151,8 +164,8 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (data == null)
             {
-                return _value == null ? 
-                    Outcome.Success() : 
+                return _value == null ?
+                    Outcome.Success() :
                     Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
             }
             var convertOutcome = ConvertToValue(data, out var value);
@@ -162,12 +175,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (value == null)
             {
-                return _value == null ? 
-                    Outcome.Success() : 
+                return _value == null ?
+                    Outcome.Success() :
                     Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
             }
-            return value.Equals(_value) ? 
-                Outcome.Success() : 
+            return value.Equals(_value) ?
+                Outcome.Success() :
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.");
         }
 
@@ -180,8 +193,8 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (data == null)
             {
-                return _value != null ? 
-                    Outcome.Success() : 
+                return _value != null ?
+                    Outcome.Success() :
                     Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
             }
             var convertOutcome = ConvertToValue(data, out var value);
@@ -191,12 +204,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (value == null)
             {
-                return _value != null ? 
-                    Outcome.Success() : 
+                return _value != null ?
+                    Outcome.Success() :
                     Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
             }
-            return !value.Equals(_value) ? 
-                Outcome.Success() : 
+            return !value.Equals(_value) ?
+                Outcome.Success() :
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.");
         }
 
@@ -217,49 +230,33 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             return
-                Unlink() &&
+                Unlink(false) &&
                 CanLink(otherProperty) &&
                 LinkInternal(otherProperty);
         }
 
-        protected virtual Outcome CanLink(IProperty otherProperty)
+        public Outcome Unlink(bool reset = true)
         {
-            if (otherProperty.ValueType != ValueType)
-            {
-                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
-            }
-            return Outcome.Success();
-        }
-
-        protected virtual Outcome LinkInternal(IProperty otherProperty)
-        {
-            _linkedProperty = otherProperty;
-            return 
-                _linkedProperty.GetData(out var linkedValue) &&
-                SetData(linkedValue!) && 
-                otherProperty.EndValueSetSignal.AddCommand(OnLinkedEndModify, this);
-        }
-
-        public Outcome Unlink()
-        {
-            if (_linkedProperty == null)
+            if (!IsLinked())
             {
                 return Outcome.Success();
             }
-            var unlinkOutcome = UnlinkInternal(_linkedProperty);
+            var unlinkOutcome =
+                UnlinkInternal(_linkedProperty!) &&
+                _linkedProperty!.EndValueSetSignal.RemoveCommand(this);
             if (!unlinkOutcome)
             {
                 return unlinkOutcome;
             }
             _linkedProperty = null;
-            return Outcome.Success();
+            return reset ? Set(_defaultValue) : Outcome.Success();
         }
 
-        protected virtual Outcome UnlinkInternal(IProperty otherProperty)
+        public Outcome IsLinked()
         {
-            return
-                otherProperty.EndValueSetSignal.RemoveCommand(this) &&
-                Set(_defaultValue);
+            return _linkedProperty != null ?
+                Outcome.Success() :
+                Outcome.Fail($"<{Owner}:{Name}> is not linked.");
         }
 
         public Outcome Equals(TValue value)
@@ -286,6 +283,29 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
+        protected virtual Outcome CanLink(IProperty otherProperty)
+        {
+            if (otherProperty.ValueType != ValueType)
+            {
+                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
+            }
+            return Outcome.Success();
+        }
+
+        protected virtual Outcome LinkInternal(IProperty otherProperty)
+        {
+            _linkedProperty = otherProperty;
+            return
+                _linkedProperty.GetData(out var linkedValue) &&
+                OnLinkedEndModify(linkedValue) &&
+                otherProperty.EndValueSetSignal.AddCommand(OnLinkedEndModify, this);
+        }
+
+        protected virtual Outcome UnlinkInternal(IProperty otherProperty)
+        {
+            return Outcome.Success();
+        }
+
         protected virtual Outcome UpdateValue(TValue value)
         {
             _value = value;

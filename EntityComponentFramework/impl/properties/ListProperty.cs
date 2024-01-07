@@ -180,6 +180,11 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             return new List<TValue>(value);
         }
+
+        public override string ValueToString()
+        {
+            return _value.Count.ToString();
+        }
         #endregion
     }
 }

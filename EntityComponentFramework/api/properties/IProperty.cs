@@ -25,7 +25,8 @@ namespace cpGames.core.EntityComponentFramework
         Outcome IsDefault();
         string ValueToString();
         Outcome Link(IProperty otherProperty);
-        Outcome Unlink();
+        Outcome Unlink(bool reset = true);
+        Outcome IsLinked();
         #endregion
     }
 
