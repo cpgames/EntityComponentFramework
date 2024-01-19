@@ -118,36 +118,46 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Methods
         protected override Outcome ConvertToValue(object? data, out TModel? value)
         {
-            value = default;
-            if (data == null)
+            if (data is string strData)
             {
+                if (string.IsNullOrEmpty(strData))
+                {
+                    value = default;
+                    return Outcome.Success();
+                }
+                try
+                {
+                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TModel))!;
+                    value = (TModel)valueObj;
+                }
+                catch (Exception e)
+                {
+                    value = default;
+                    return Outcome.Fail(e.Message);
+                }
                 return Outcome.Success();
             }
-            object? valueObj;
-            try
+            if (data is byte[] bytes)
             {
-                string strData;
-                if (data is byte[] bytes)
+                if (bytes.Length == 0)
+                {
+                    value = default;
+                    return Outcome.Success();
+                }
+                try
                 {
                     strData = Encoding.UTF8.GetString(bytes);
+                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TModel))!;
+                    value = (TModel)valueObj;
                 }
-                else
+                catch (Exception e)
                 {
-                    strData = (string)data;
+                    Console.WriteLine(e);
+                    throw;
                 }
-                valueObj = JsonConvert.DeserializeObject(strData, typeof(TModel));
+                return Outcome.Success();
             }
-            catch (Exception e)
-            {
-                return Outcome.Fail(e.Message);
-            }
-            if (valueObj != null)
-            {
-                value = (TModel)valueObj;
-            }
-            return value == null ?
-                Outcome.Fail($"Failed to convert <{data.GetType().Name}> to <{typeof(TModel).Name}>.") :
-                Outcome.Success();
+            return base.ConvertToValue(data, out value);
         }
 
         protected override Outcome ConvertToData(TModel? value, out object? data)

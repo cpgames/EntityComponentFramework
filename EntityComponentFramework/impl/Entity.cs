@@ -416,7 +416,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 {
                     return getPropertyOutcome;
                 }
-                var equalsOutcome = property!.ValueEquals(propertyValue.Key);
+                var equalsOutcome = property!.ValueEquals(propertyValue.Value);
                 if (!equalsOutcome)
                 {
                     return equalsOutcome;
