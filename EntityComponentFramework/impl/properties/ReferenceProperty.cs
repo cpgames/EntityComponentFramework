@@ -71,7 +71,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome HasTarget()
         {
-            var getOutcome = Get(out var value);
+            var getOutcome = GetNonDefault(out var value);
             if (!getOutcome)
             {
                 return getOutcome;
