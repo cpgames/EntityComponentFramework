@@ -388,11 +388,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 while (_components.Count > 0)
                 {
-                    var disconnectOutcome = _components.First().Disconnect();
+                    var disconnectOutcome = _components[_components.Count - 1].Disconnect();
                     if (!disconnectOutcome)
                     {
                         return disconnectOutcome;
                     }
+                    _components.Remove(_components[_components.Count - 1]);
                 }
                 _components.Clear();
                 foreach (var property in _properties.Values)
