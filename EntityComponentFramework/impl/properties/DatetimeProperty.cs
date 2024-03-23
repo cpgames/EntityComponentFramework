@@ -40,7 +40,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                          DateTimeStyles.None,
                          out value))
             {
-                return Outcome.Fail($"Failed to convert {(string)data} to DateTime.");
+                return Outcome.Fail($"Failed to convert {(string)data} to DateTime.", this);
             }
             return Outcome.Success();
         }

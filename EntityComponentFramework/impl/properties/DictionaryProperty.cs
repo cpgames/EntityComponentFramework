@@ -75,7 +75,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (dictionary!.ContainsKey(key))
             {
-                return Outcome.Fail($"Dictionary already contains key {key}");
+                return Outcome.Fail($"Dictionary already contains key {key}", this);
             }
             var beginElementSetOutcome = BeginElementSetSignal.DispatchResult(key, value);
             if (!beginElementSetOutcome)
@@ -98,7 +98,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (!dictionary!.ContainsKey(key))
             {
-                return Outcome.Fail($"Dictionary does not contain key {key}");
+                return Outcome.Fail($"Dictionary does not contain key {key}", this);
             }
             var beginElementSetOutcome = BeginElementSetSignal.DispatchResult(key, default!);
             if (!beginElementSetOutcome)
@@ -122,7 +122,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             return dictionary!.ContainsKey(key) ?
                 Outcome.Success() :
-                Outcome.Fail($"Dictionary does not contain key {key}");
+                Outcome.Fail($"Dictionary does not contain key {key}", this);
         }
 
         public Outcome GetElement(TKey key, out TValue? value)
@@ -136,7 +136,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             if (!dictionary!.ContainsKey(key))
             {
                 value = default;
-                return Outcome.Fail($"Dictionary does not contain key {key}");
+                return Outcome.Fail($"Dictionary does not contain key {key}", this);
             }
             value = dictionary[key];
             return Outcome.Success();

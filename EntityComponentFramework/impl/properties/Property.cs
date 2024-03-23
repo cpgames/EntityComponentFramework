@@ -150,7 +150,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (ValueComparer.Equals(value!, _defaultValue))
             {
-                return Outcome.Fail($"<{Owner}:{Name}> Value <{value}> is default value.");
+                return Outcome.Fail($"<{Owner}:{Name}> Value <{value}> is default value.", this);
             }
             return Outcome.Success();
         }
@@ -166,7 +166,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _value == null ?
                     Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.", this);
             }
             var convertOutcome = ConvertToValue(data, out var value);
             if (!convertOutcome)
@@ -177,11 +177,11 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _value == null ?
                     Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.");
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.", this);
             }
             return value.Equals(_value) ?
                 Outcome.Success() :
-                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.");
+                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.", this);
         }
 
         public Outcome ValueNotEquals(object? data)
@@ -195,7 +195,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _value != null ?
                     Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.", this);
             }
             var convertOutcome = ConvertToValue(data, out var value);
             if (!convertOutcome)
@@ -206,11 +206,11 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _value != null ?
                     Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.", this);
             }
             return !value.Equals(_value) ?
                 Outcome.Success() :
-                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.");
+                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.", this);
         }
 
         public Outcome IsDefault()
@@ -256,7 +256,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             return _linkedProperty != null ?
                 Outcome.Success() :
-                Outcome.Fail($"<{Owner}:{Name}> is not linked.");
+                Outcome.Fail($"<{Owner}:{Name}> is not linked.", this);
         }
 
         public Outcome Equals(TValue value)
@@ -270,7 +270,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Outcome.Success();
             }
-            return Outcome.Fail($"<{Owner}:{Name}> Value <{myValue}> does not equal <{value}>.");
+            return Outcome.Fail($"<{Owner}:{Name}> Value <{myValue}> does not equal <{value}>.", this);
         }
 
         public Outcome UpdateValue()
@@ -287,7 +287,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             if (otherProperty.ValueType != ValueType)
             {
-                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
+                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.", this);
             }
             return Outcome.Success();
         }
@@ -325,7 +325,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             value = default;
-            return Outcome.Fail($"<{Owner}:{Name}> Failed to convert <{data?.GetType().Name}> to <{typeof(TValue).Name}>.");
+            return Outcome.Fail($"<{Owner}:{Name}> Failed to convert <{data?.GetType().Name}> to <{typeof(TValue).Name}>.", this);
         }
 
         protected virtual Outcome ConvertToData(TValue? value, out object? data)

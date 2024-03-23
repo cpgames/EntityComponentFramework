@@ -17,7 +17,7 @@
             }
             if (data is string str)
             {
-                return Id.TryParse(str, out value);
+                return Id.TryParse(str, out value).Append(this);
             }
             value = Id.INVALID;
             return Outcome.Success();

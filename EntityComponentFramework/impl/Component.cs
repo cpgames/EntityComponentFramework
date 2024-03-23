@@ -27,7 +27,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             if (IsConnected)
             {
-                return Outcome.Fail($"Component <{GetType().Name}> is already connected.");
+                return Outcome.Fail($"Component <{GetType().Name}> is already connected.", this);
             }
             Entity = entity;
             IsConnected = true;
@@ -43,7 +43,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             if (!IsConnected)
             {
-                return Outcome.Fail($"Component <{GetType().Name}> is already disconnected.");
+                return Outcome.Fail($"Component <{GetType().Name}> is already disconnected.", this);
             }
             var disconnectInternalOutcome =
                 CheckIfStillRequired(Entity) &&
@@ -65,7 +65,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             if (!IsConnected)
             {
                 entity = null!;
-                return Outcome.Fail($"Component <{GetType().Name}> is not connected.");
+                return Outcome.Fail($"Component <{GetType().Name}> is not connected.", this);
             }
             entity = Entity;
             return Outcome.Success();
@@ -112,7 +112,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
                 if (!property!.GetType().IsTypeOrDerived(propertyInfo.PropertyType))
                 {
-                    return Outcome.Fail($"Property <{propertyAttribute.Name}> is not of type <{propertyInfo.PropertyType.Name}> in <{GetType().Name}>.");
+                    return Outcome.Fail($"Property <{propertyAttribute.Name}> is not of type <{propertyInfo.PropertyType.Name}> in <{GetType().Name}>.", this);
                 }
                 propertyInfo.SetValue(this, property, null);
                 _properties.Add(property);
@@ -127,7 +127,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 if (propertyInfo.PropertyType == GetType())
                 {
-                    return Outcome.Fail($"Component <{GetType().Name}> has a property that references itself.");
+                    return Outcome.Fail($"Component <{GetType().Name}> has a property that references itself.", this);
                 }
                 var connectPropertyOutcome = ConnectRequiredComponent(Entity, propertyInfo);
                 if (!connectPropertyOutcome)
@@ -143,7 +143,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var requiredComponentAttribute = propertyInfo.GetAttribute<RequiredComponentAttribute>();
             if (requiredComponentAttribute == null)
             {
-                return Outcome.Fail($"{propertyInfo.Name} is missing RequiredComponentAttribute.");
+                return Outcome.Fail($"{propertyInfo.Name} is missing RequiredComponentAttribute.", this);
             }
             if (target.GetComponent(propertyInfo.PropertyType, out var component))
             {
@@ -160,7 +160,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 propertyInfo.SetValue(this, component, null);
                 return Outcome.Success();
             }
-            return Outcome.Fail($"Component <{GetType().Name}> is missing required component <{propertyInfo.PropertyType.Name}>.");
+            return Outcome.Fail($"Component <{GetType().Name}> is missing required component <{propertyInfo.PropertyType.Name}>.", this);
         }
 
         private Outcome CheckIfStillRequired(Entity target)
@@ -173,7 +173,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
                 if (component.GetType().GetProperties().Any(x => x.PropertyType == GetType() && x.GetValue(component, null) == this))
                 {
-                    return Outcome.Fail($"Component <{GetType().Name}> can not be removed, it is still required by <{component.GetType().Name}>.");
+                    return Outcome.Fail($"Component <{GetType().Name}> can not be removed, it is still required by <{component.GetType().Name}>.", this);
                 }
             }
             return Outcome.Success();

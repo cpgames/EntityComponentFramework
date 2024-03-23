@@ -78,7 +78,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             return value != null ?
                 Outcome.Success() :
-                Outcome.Fail($"Reference {Name} is not established.");
+                Outcome.Fail($"Reference {Name} is not established.", this);
         }
         #endregion
 
@@ -128,7 +128,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (component is not TComponent)
             {
-                return Outcome.Fail($"Component {component!.GetType()} is not of type {typeof(TComponent)}");
+                return Outcome.Fail($"Component {component!.GetType()} is not of type {typeof(TComponent)}", this);
             }
             value = (TComponent)component;
             return Outcome.Success();

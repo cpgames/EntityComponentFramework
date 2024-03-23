@@ -109,7 +109,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             catch (Exception e)
             {
-                return Outcome.Fail(e.Message);
+                return Outcome.Fail(e.Message, this);
             }
             return Outcome.Success();
         }
@@ -133,7 +133,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 catch (Exception e)
                 {
                     value = default;
-                    return Outcome.Fail(e.Message);
+                    return Outcome.Fail(e.Message, this);
                 }
                 return Outcome.Success();
             }
@@ -174,7 +174,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             catch (Exception e)
             {
-                return Outcome.Fail(e.Message);
+                return Outcome.Fail(e.Message, this);
             }
             _value = value;
             return Outcome.Success();

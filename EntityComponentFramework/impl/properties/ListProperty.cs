@@ -34,21 +34,21 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             return entryObj is TValue entry ?
                 AddEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}");
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}", this);
         }
 
         public Outcome RemoveEntryObj(object entryObj)
         {
             return entryObj is TValue entry ?
                 RemoveEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}");
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}", this);
         }
 
         public Outcome HasEntryObj(object entryObj)
         {
             return entryObj is TValue entry ?
                 HasEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}");
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}", this);
         }
 
         public Outcome AddEntry(TValue entry)
@@ -60,7 +60,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (value!.Contains(entry))
             {
-                return Outcome.Fail($"List already contains entry {entry}");
+                return Outcome.Fail($"List already contains entry {entry}", this);
             }
             value.Add(entry);
             return EntryAddedSignal.DispatchResult(entry);
@@ -75,7 +75,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (!value!.Contains(entry))
             {
-                return Outcome.Fail($"List does not contain entry {entry}");
+                return Outcome.Fail($"List does not contain entry {entry}", this);
             }
             value.Remove(entry);
             return EntryRemovedSignal.DispatchResult(entry);
@@ -90,7 +90,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             return value!.Contains(entry) ?
                 Outcome.Success() :
-                Outcome.Fail($"List does not contain entry {entry}");
+                Outcome.Fail($"List does not contain entry {entry}", this);
         }
 
         public Outcome Clear()
@@ -112,7 +112,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             value = default;
-            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TValue)}");
+            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TValue)}", this);
         }
 
         protected override Outcome ConvertToValue(object? data, out List<TValue>? value)
@@ -141,7 +141,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 if (!EntryType.IsAssignableFrom(otherListProperty.EntryType))
                 {
-                    return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant");
+                    return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant", this);
                 }
                 return Outcome.Success();
             }

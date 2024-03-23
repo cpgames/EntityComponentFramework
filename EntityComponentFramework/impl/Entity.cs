@@ -75,17 +75,17 @@ namespace cpGames.core.EntityComponentFramework.impl
                         return Outcome.Success();
                     }
                     property = default;
-                    return Outcome.Fail($"Property <{name}> already exists in <{this}> but is not of type <{type.Name}>.");
+                    return Outcome.Fail($"Property <{name}> already exists in <{this}> but is not of type <{type.Name}>.", this);
                 }
                 if (!typeof(IProperty).IsAssignableFrom(type))
                 {
                     property = null;
-                    return Outcome.Fail($"Type <{type.Name}> must implement <{nameof(IProperty)}>.");
+                    return Outcome.Fail($"Type <{type.Name}> must implement <{nameof(IProperty)}>.", this);
                 }
                 if (type.IsAbstract)
                 {
                     property = null;
-                    return Outcome.Fail($"Type <{type.Name}> must not be abstract.");
+                    return Outcome.Fail($"Type <{type.Name}> must not be abstract.", this);
                 }
                 IProperty? propertyT;
                 if (defaultValue == null)
@@ -103,7 +103,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 if (propertyT == null)
                 {
                     property = null;
-                    return Outcome.Fail($"Property type <{type.Name}> must implement IProperty.");
+                    return Outcome.Fail($"Property type <{type.Name}> must implement IProperty.", this);
                 }
                 _properties.Add(name, propertyT);
                 property = propertyT;
@@ -132,7 +132,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 if (propertyBase is not TProperty propertyT)
                 {
                     property = null;
-                    return Outcome.Fail($"Property <{name}> is not of type <{typeof(TProperty).Name}>.");
+                    return Outcome.Fail($"Property <{name}> is not of type <{typeof(TProperty).Name}>.", this);
                 }
                 property = propertyT;
                 return outcome;
@@ -145,7 +145,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _properties.TryGetValue(name, out property) ?
                     Outcome.Success() :
-                    Outcome.Fail($"Property <{name}> does not exist in <{this}>.");
+                    Outcome.Fail($"Property <{name}> does not exist in <{this}>.", this);
             }
         }
 
@@ -156,7 +156,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 if (!typeof(IProperty).IsAssignableFrom(type))
                 {
                     property = null;
-                    return Outcome.Fail($"Type <{type.Name}> must implement <{nameof(IProperty)}>.");
+                    return Outcome.Fail($"Type <{type.Name}> must implement <{nameof(IProperty)}>.", this);
                 }
                 var getPropertyOutcome = GetProperty(name, out var propertyBase);
                 if (!getPropertyOutcome)
@@ -167,7 +167,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 if (!propertyBase!.GetType().IsTypeOrDerived(type))
                 {
                     property = null;
-                    return Outcome.Fail($"Property <{name}> is not of type <{type.Name}> in <{this}>.");
+                    return Outcome.Fail($"Property <{name}> is not of type <{type.Name}> in <{this}>.", this);
                 }
                 property = propertyBase;
                 return Outcome.Success();
@@ -185,7 +185,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             if (propertyBase is not TProperty propertyT)
             {
                 property = default;
-                return Outcome.Fail($"Property <{name}> is not of type <{typeof(TProperty).Name}> in <{this}>.");
+                return Outcome.Fail($"Property <{name}> is not of type <{typeof(TProperty).Name}> in <{this}>.", this);
             }
             property = propertyT;
             return Outcome.Success();
@@ -197,7 +197,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 if (_components.Any(x => x.GetType() == component.GetType()))
                 {
-                    return Outcome.Fail($"Component <{component.GetType().Name}> already exists in <{this}>.");
+                    return Outcome.Fail($"Component <{component.GetType().Name}> already exists in <{this}>.", this);
                 }
                 _components.Add(component);
                 var connectOutcome = component.Connect(this);
@@ -216,15 +216,15 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 if (!typeof(IComponent).IsAssignableFrom(componentType))
                 {
-                    return Outcome.Fail($"Component type <{componentType.Name}> must implement IComponent.");
+                    return Outcome.Fail($"Component type <{componentType.Name}> must implement IComponent.", this);
                 }
                 if (componentType.IsAbstract || componentType.IsInterface)
                 {
-                    return Outcome.Fail($"Component type <{componentType.Name}> must be non abstract and non interface.");
+                    return Outcome.Fail($"Component type <{componentType.Name}> must be non abstract and non interface.", this);
                 }
                 if (_components.Any(x => x.GetType() == componentType))
                 {
-                    return Outcome.Fail($"Component of type <{componentType.Name}> already exists in <{this}>.");
+                    return Outcome.Fail($"Component of type <{componentType.Name}> already exists in <{this}>.", this);
                 }
                 var component = (IComponent)Activator.CreateInstance(componentType, args);
                 _components.Add(component);
@@ -251,15 +251,15 @@ namespace cpGames.core.EntityComponentFramework.impl
                 component = null;
                 if (!typeof(IComponent).IsAssignableFrom(componentType))
                 {
-                    return Outcome.Fail($"Component type <{componentType.Name}> must implement IComponent.");
+                    return Outcome.Fail($"Component type <{componentType.Name}> must implement IComponent.", this);
                 }
                 if (componentType.IsAbstract || componentType.IsInterface)
                 {
-                    return Outcome.Fail($"Component type <{componentType.Name}> must be non abstract and non interface.");
+                    return Outcome.Fail($"Component type <{componentType.Name}> must be non abstract and non interface.", this);
                 }
                 if (_components.Any(x => x.GetType() == componentType))
                 {
-                    return Outcome.Fail($"Component of type <{componentType.Name}> already exists in <{this}>.");
+                    return Outcome.Fail($"Component of type <{componentType.Name}> already exists in <{this}>.", this);
                 }
                 component = (IComponent)Activator.CreateInstance(componentType, args);
                 _components.Add(component);
@@ -320,7 +320,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 var component = _components.OfType<TComponent>().FirstOrDefault();
                 if (component == null)
                 {
-                    return Outcome.Fail($"Component in entity <{this}> of type <{typeof(TComponent).Name}> already exists.");
+                    return Outcome.Fail($"Component in entity <{this}> of type <{typeof(TComponent).Name}> already exists.", this);
                 }
                 var disconnectResult = component.Disconnect();
                 if (!disconnectResult)
@@ -337,7 +337,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             lock (_syncRoot)
             {
                 return !_components.OfType<TComponent>().Any() ?
-                    Outcome.Fail($"No components in entity <{this}> of type <{typeof(TComponent).Name}>.") :
+                    Outcome.Fail($"No components in entity <{this}> of type <{typeof(TComponent).Name}>.", this) :
                     Outcome.Success();
             }
         }
@@ -351,7 +351,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             // ReSharper disable once ConvertIfStatementToReturnStatement for debugging
             if (component == null)
             {
-                return Outcome.Fail($"No components in entity <{this}> of type <{componentType.Name}>.");
+                return Outcome.Fail($"No components in entity <{this}> of type <{componentType.Name}>.", this);
             }
             return Outcome.Success();
         }
@@ -366,7 +366,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 // ReSharper disable once ConvertIfStatementToReturnStatement for debugging
                 if (component == null)
                 {
-                    return Outcome.Fail($"No component of type <{typeof(TComponent)}> exists.");
+                    return Outcome.Fail($"No component of type <{typeof(TComponent)}> exists.", this);
                 }
                 return Outcome.Success();
             }

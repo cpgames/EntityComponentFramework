@@ -29,7 +29,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             value = default;
-            return Outcome.Fail($"Failed to convert <{data.GetType().Name}> to <{nameof(String)}>.");
+            return Outcome.Fail($"Failed to convert <{data.GetType().Name}> to <{nameof(String)}>.", this);
         }
         #endregion
     }
