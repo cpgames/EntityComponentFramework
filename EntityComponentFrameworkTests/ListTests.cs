@@ -28,6 +28,28 @@ public class ListTests
     public void Setup() { }
 
     [Test]
+    public void TestAddRemoveElementsLinked()
+    {
+        var entity = new Entity(Id.INVALID);
+        var addOutcome = entity.AddProperty<ListProperty<int>>("list1", null, out var list1);
+        Assert.That(addOutcome, addOutcome.ErrorMessage);
+        var setOutcome = list1!.Set(new List<int>());
+        Assert.That(setOutcome, setOutcome.ErrorMessage);
+        var addOutcome2 = entity.AddProperty<ListProperty<int>>("list2", null, out var list2);
+        Assert.That(addOutcome2, addOutcome2.ErrorMessage);
+        var linkOutcome = list2!.Link(list1);
+        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
+        // add value to list1 and verify it is in list2
+        var addValueOutcome = list1.AddEntry(1);
+        Assert.That(addValueOutcome, addValueOutcome.ErrorMessage);
+        Assert.That(list2.Contains(1), Is.True);
+        // remove value from list1 and verify it is not in list2
+        var removeValueOutcome = list1.RemoveEntry(1);
+        Assert.That(removeValueOutcome, removeValueOutcome.ErrorMessage);
+        Assert.That(list2.Contains(1), Is.False);
+    }
+
+    [Test]
     public void TestCovariantLink()
     {
         var entity = new Entity(Id.INVALID);

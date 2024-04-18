@@ -152,8 +152,8 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             var listProperty = (IListProperty)otherProperty;
             return 
-                listProperty.EntryObjAddedSignal.AddCommand(val => EntryAddedSignal.DispatchResult((TValue)val), this) &&
-                listProperty.EntryObjRemovedSignal.AddCommand(val => EntryRemovedSignal.DispatchResult((TValue)val), this) &&
+                listProperty.EntryObjAddedSignal.AddCommand(AddEntryObj, this) &&
+                listProperty.EntryObjRemovedSignal.AddCommand(RemoveEntryObj, this) &&
                 base.LinkInternal(otherProperty);
         }
 
