@@ -313,6 +313,24 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
+        public Outcome RemoveComponent(IComponent component)
+        {
+            lock (SyncRoot)
+            {
+                if (!_components.Contains(component))
+                {
+                    return Outcome.Fail($"Component <{component.GetType().Name}> does not exist in <{this}>.", this);
+                }
+                var disconnectResult = component.Disconnect();
+                if (!disconnectResult)
+                {
+                    return disconnectResult;
+                }
+                _components.Remove(component);
+                return Outcome.Success();
+            }
+        }
+
         public Outcome RemoveComponent<TComponent>() where TComponent : IComponent
         {
             lock (SyncRoot)
@@ -322,13 +340,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 {
                     return Outcome.Fail($"Component in entity <{this}> of type <{typeof(TComponent).Name}> already exists.", this);
                 }
-                var disconnectResult = component.Disconnect();
-                if (!disconnectResult)
-                {
-                    return disconnectResult;
-                }
-                _components.Remove(component);
-                return Outcome.Success();
+                return RemoveComponent(component);
             }
         }
 

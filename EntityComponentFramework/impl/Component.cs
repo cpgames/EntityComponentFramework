@@ -20,8 +20,10 @@ namespace cpGames.core.EntityComponentFramework.impl
         public Id Id => Entity.Id;
 
         public IEnumerable<IProperty> Properties => _properties;
-        public ISignalOutcome ConnectedSignal { get; } = new LazySignalOutcome();
-        public ISignalOutcome DisconnectedSignal { get; } = new LazySignalOutcome();
+        public ISignalOutcome<IComponent> BeginConnectedSignal { get; } = new LazySignalOutcome<IComponent>();
+        public ISignalOutcome<IComponent> EndConnectedSignal { get; } = new LazySignalOutcome<IComponent>();
+        public ISignalOutcome<IComponent> BeginDisconnectedSignal { get; } = new LazySignalOutcome<IComponent>();
+        public ISignalOutcome<IComponent> EndDisconnectedSignal { get; } = new LazySignalOutcome<IComponent>();
 
         public Outcome Connect(Entity entity)
         {
@@ -32,11 +34,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             Entity = entity;
             IsConnected = true;
             return
+                BeginConnectedSignal.DispatchResult(this) &&
                 RegisterWithContext() &&
                 ConnectRequiredComponents() &&
                 ConnectRequiredProperties() &&
                 ConnectInternal() &&
-                ConnectedSignal.DispatchResult();
+                EndConnectedSignal.DispatchResult(this);
         }
 
         public Outcome Disconnect()
@@ -46,6 +49,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Fail($"Component <{GetType().Name}> is already disconnected.", this);
             }
             var disconnectInternalOutcome =
+                BeginDisconnectedSignal.DispatchResult(this) &&
                 CheckIfStillRequired(Entity) &&
                 DisconnectInternal();
             if (!disconnectInternalOutcome)
@@ -57,7 +61,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             _properties.Clear();
             return
                 UnregisterFromContext() &&
-                DisconnectedSignal.DispatchResult();
+                EndDisconnectedSignal.DispatchResult(this);
         }
 
         public Outcome GetEntity(out Entity entity)
