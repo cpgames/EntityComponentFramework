@@ -12,8 +12,10 @@ namespace cpGames.core.EntityComponentFramework
         Id Id { get; }
         IEnumerable<IProperty> Properties { get; }
 
-        ISignalOutcome ConnectedSignal { get; }
-        ISignalOutcome DisconnectedSignal { get; }
+        ISignalOutcome<IComponent> BeginConnectedSignal { get; }
+        ISignalOutcome<IComponent> EndConnectedSignal { get; }
+        ISignalOutcome<IComponent> BeginDisconnectedSignal { get; }
+        ISignalOutcome<IComponent> EndDisconnectedSignal { get; }
         #endregion
 
         #region Methods
