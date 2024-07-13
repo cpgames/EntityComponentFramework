@@ -57,7 +57,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Constructors
-        public ReferenceProperty(Entity owner, string name) : base(owner, name, null) { }
+        public ReferenceProperty(Entity owner, string name) : base(owner, name, null) {}
         #endregion
 
         #region IReferenceProperty<TComponent> Members

@@ -3,8 +3,9 @@
     public class IdProperty : Property<Id>, IIdProperty
     {
         #region Constructors
-        public IdProperty(Entity owner, string name, Id defaultValue) : base(owner, name, defaultValue) { }
-        public IdProperty(Entity owner, string name) : base(owner, name, Id.INVALID) { }
+        public IdProperty(Entity owner, string name, Id defaultValue) : base(owner, name, defaultValue) {}
+
+        public IdProperty(Entity owner, string name) : base(owner, name, Id.INVALID) {}
         #endregion
 
         #region Methods
