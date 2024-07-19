@@ -20,10 +20,10 @@ namespace cpGames.core.EntityComponentFramework
         #endregion
 
         #region Methods
-        Outcome AddElement(TKey key, TValue value);
         Outcome RemoveElement(TKey key);
         Outcome HasElement(TKey key);
         Outcome GetElement(TKey key, out TValue? value);
+        Outcome SetElement(TKey key, TValue value);
         #endregion
     }
 }

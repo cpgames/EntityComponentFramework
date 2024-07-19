@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using cpGames.core.RapidIoC;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
@@ -66,29 +68,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         public ISignalOutcome<TKey, TValue> ElementRemovedSignal { get; } = new LazySignalOutcome<TKey, TValue>();
         public ISignalOutcome ElementCountChangedSignal { get; } = new LazySignalOutcome();
 
-        public Outcome AddElement(TKey key, TValue value)
-        {
-            var getOutcome = Get(out var dictionary);
-            if (!getOutcome)
-            {
-                return getOutcome;
-            }
-            if (dictionary!.ContainsKey(key))
-            {
-                return Outcome.Fail($"Dictionary already contains key {key}", this);
-            }
-            var beginElementSetOutcome = BeginElementSetSignal.DispatchResult(key, value);
-            if (!beginElementSetOutcome)
-            {
-                return beginElementSetOutcome;
-            }
-            dictionary.Add(key, value);
-            return
-                EndElementSetSignal.DispatchResult(key, value) &&
-                ElementAddedSignal.DispatchResult(key, value) &&
-                ElementCountChangedSignal.DispatchResult();
-        }
-
         public Outcome RemoveElement(TKey key)
         {
             var getOutcome = Get(out var dictionary);
@@ -140,6 +119,30 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             value = dictionary[key];
             return Outcome.Success();
+        }
+
+        public Outcome SetElement(TKey key, TValue value)
+        {
+            var getOutcome = Get(out var dictionary);
+            if (!getOutcome)
+            {
+                return getOutcome;
+            }
+            if (!BeginElementSetSignal.DispatchResult(key, value))
+            {
+                return Outcome.Fail("Failed to set dictionary element", this);
+            }
+            if (!dictionary!.ContainsKey(key))
+            {
+                dictionary.Add(key, value);
+                return
+                    EndElementSetSignal.DispatchResult(key, value) &&
+                    ElementAddedSignal.DispatchResult(key, value) &&
+                    ElementCountChangedSignal.DispatchResult();
+            }
+            
+            dictionary[key] = value;
+            return EndElementSetSignal.DispatchResult(key, value);
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
