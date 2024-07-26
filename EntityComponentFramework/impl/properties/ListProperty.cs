@@ -5,53 +5,55 @@ using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class ListProperty<TValue> : Property<List<TValue>>, IListProperty<TValue>
+    public class ListProperty<TElementValue> : Property<List<TElementValue>>, IListProperty<TElementValue>
     {
         #region Constructors
-        public ListProperty(Entity owner, string name, List<TValue> defaultValue) : base(owner, name, defaultValue) {
-            EntryAddedSignal.AddCommand(val => 
+        public ListProperty(Entity owner, string name, List<TElementValue> defaultValue) : base(owner, name, defaultValue)
+        {
+            EntryAddedSignal.AddCommand(val =>
                 EntryObjAddedSignal.DispatchResult(val!) &&
                 EntryCountChangedSignal.DispatchResult());
             EntryRemovedSignal.AddCommand(val =>
                 EntryObjRemovedSignal.DispatchResult(val!) &&
                 EntryCountChangedSignal.DispatchResult());
         }
-        public ListProperty(Entity owner, string name) : this(owner, name, new List<TValue>()) { }
+
+        public ListProperty(Entity owner, string name) : this(owner, name, new List<TElementValue>()) { }
         #endregion
 
-        #region IListProperty<TValue> Members
+        #region IListProperty<TElementValue> Members
         public long Count => Value.Count;
         public bool Empty => Count == 0;
-        public Type EntryType => typeof(TValue);
+        public Type ElementType => typeof(TElementValue);
         public ISignalOutcome<object> EntryObjAddedSignal { get; } = new LazySignalOutcome<object>();
         public ISignalOutcome<object> EntryObjRemovedSignal { get; } = new LazySignalOutcome<object>();
-        public ISignalOutcome<TValue> EntryAddedSignal { get; } = new LazySignalOutcome<TValue>();
-        public ISignalOutcome<TValue> EntryRemovedSignal { get; } = new LazySignalOutcome<TValue>();
-        public TValue this[int index] => Value[index];
+        public ISignalOutcome<TElementValue> EntryAddedSignal { get; } = new LazySignalOutcome<TElementValue>();
+        public ISignalOutcome<TElementValue> EntryRemovedSignal { get; } = new LazySignalOutcome<TElementValue>();
+        public TElementValue this[int index] => Value[index];
         public ISignalOutcome EntryCountChangedSignal { get; } = new LazySignalOutcome();
 
         public Outcome AddEntryObj(object entryObj)
         {
-            return entryObj is TValue entry ?
+            return entryObj is TElementValue entry ?
                 AddEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}", this);
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
         }
 
         public Outcome RemoveEntryObj(object entryObj)
         {
-            return entryObj is TValue entry ?
+            return entryObj is TElementValue entry ?
                 RemoveEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}", this);
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
         }
 
         public Outcome HasEntryObj(object entryObj)
         {
-            return entryObj is TValue entry ?
+            return entryObj is TElementValue entry ?
                 HasEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TValue)}", this);
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
         }
 
-        public Outcome AddEntry(TValue entry)
+        public Outcome AddEntry(TElementValue entry)
         {
             var getOutcome = Get(out var value);
             if (!getOutcome)
@@ -66,7 +68,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return EntryAddedSignal.DispatchResult(entry);
         }
 
-        public Outcome RemoveEntry(TValue entry)
+        public Outcome RemoveEntry(TElementValue entry)
         {
             var getOutcome = Get(out var value);
             if (!getOutcome)
@@ -81,7 +83,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return EntryRemovedSignal.DispatchResult(entry);
         }
 
-        public Outcome HasEntry(TValue entry)
+        public Outcome HasEntry(TElementValue entry)
         {
             var getOutcome = Get(out var value);
             if (!getOutcome)
@@ -104,22 +106,39 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        protected virtual Outcome ConvertEntry(object? data, out TValue? value)
+        public IEnumerator<TElementValue> GetEnumerator()
         {
-            if (data is TValue entry)
+            return Value.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public override string ValueToString()
+        {
+            return _value.Count.ToString();
+        }
+        #endregion
+
+        #region Methods
+        protected virtual Outcome ConvertEntry(object? data, out TElementValue? value)
+        {
+            if (data is TElementValue entry)
             {
                 value = entry;
                 return Outcome.Success();
             }
             value = default;
-            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TValue)}", this);
+            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TElementValue)}", this);
         }
 
-        protected override Outcome ConvertToValue(object? data, out List<TValue>? value)
+        protected override Outcome ConvertToValue(object? data, out List<TElementValue>? value)
         {
             if (data is IList list)
             {
-                value = new List<TValue>();
+                value = new List<TElementValue>();
                 foreach (var entry in list)
                 {
                     var convertOutcome = ConvertEntry(entry, out var entryValue);
@@ -139,7 +158,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             if (otherProperty is IListProperty otherListProperty)
             {
-                if (!EntryType.IsAssignableFrom(otherListProperty.EntryType))
+                if (!ElementType.IsAssignableFrom(otherListProperty.ElementType))
                 {
                     return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant", this);
                 }
@@ -151,7 +170,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         protected override Outcome LinkInternal(IProperty otherProperty)
         {
             var listProperty = (IListProperty)otherProperty;
-            return 
+            return
                 listProperty.EntryObjAddedSignal.AddCommand(AddEntryObj, this) &&
                 listProperty.EntryObjRemovedSignal.AddCommand(RemoveEntryObj, this) &&
                 base.LinkInternal(otherProperty);
@@ -166,24 +185,9 @@ namespace cpGames.core.EntityComponentFramework.impl
                 base.UnlinkInternal(otherProperty);
         }
 
-        public IEnumerator<TValue> GetEnumerator()
+        protected override List<TElementValue> Clone(List<TElementValue> value)
         {
-            return Value.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        protected override List<TValue> Clone(List<TValue> value)
-        {
-            return new List<TValue>(value);
-        }
-
-        public override string ValueToString()
-        {
-            return _value.Count.ToString();
+            return new List<TElementValue>(value);
         }
         #endregion
     }

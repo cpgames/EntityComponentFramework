@@ -10,7 +10,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Properties
         long Count { get; }
         bool Empty { get; }
-        Type EntryType { get; }
+        Type ElementType { get; }
         ISignalOutcome<object> EntryObjAddedSignal { get; }
         ISignalOutcome<object> EntryObjRemovedSignal { get; }
         ISignalOutcome EntryCountChangedSignal { get; }
@@ -22,18 +22,19 @@ namespace cpGames.core.EntityComponentFramework
         Outcome HasEntryObj(object entryObj);
         #endregion
     }
-    public interface IListProperty<TValue> : IProperty<List<TValue>>, IListProperty, IEnumerable<TValue>
+
+    public interface IListProperty<TElementValue> : IProperty<List<TElementValue>>, IListProperty, IEnumerable<TElementValue>
     {
         #region Properties
-        ISignalOutcome<TValue> EntryAddedSignal { get; }
-        ISignalOutcome<TValue> EntryRemovedSignal { get; }
-        TValue this[int index] { get; }
+        ISignalOutcome<TElementValue> EntryAddedSignal { get; }
+        ISignalOutcome<TElementValue> EntryRemovedSignal { get; }
+        TElementValue this[int index] { get; }
         #endregion
 
         #region Methods
-        Outcome AddEntry(TValue entry);
-        Outcome RemoveEntry(TValue entry);
-        Outcome HasEntry(TValue entry);
+        Outcome AddEntry(TElementValue entry);
+        Outcome RemoveEntry(TElementValue entry);
+        Outcome HasEntry(TElementValue entry);
         Outcome Clear();
         #endregion
     }

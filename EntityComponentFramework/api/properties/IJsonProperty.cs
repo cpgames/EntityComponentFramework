@@ -8,7 +8,6 @@
     }
 
     public interface IJsonProperty<TModel> : IProperty<TModel?>, IJsonProperty
-        where TModel : class
     {
         #region Methods
         Outcome Clone(out TModel? value);

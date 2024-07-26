@@ -7,14 +7,13 @@ namespace cpGames.core.EntityComponentFramework.impl
     public sealed class Entity
     {
         #region Fields
-        private readonly object _syncRoot = new();
-        private readonly Id _id;
         private readonly Dictionary<string, IProperty> _properties = new();
         private readonly List<IComponent> _components = new();
         #endregion
 
         #region Properties
-        public Id Id => _id;
+        public Id Id { get; }
+
         public IProperty this[string name]
         {
             get
@@ -48,13 +47,14 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
             }
         }
-        public object SyncRoot => _syncRoot;
+
+        public object SyncRoot { get; } = new();
         #endregion
 
         #region Constructors
         public Entity(Id id)
         {
-            _id = id;
+            Id = id;
         }
         #endregion
 
@@ -139,6 +139,26 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
+        public Outcome HasProperty(string name)
+        {
+            lock (SyncRoot)
+            {
+                return _properties.ContainsKey(name) ?
+                    Outcome.Success() :
+                    Outcome.Fail($"Property <{name}> does not exist in <{this}>.", this);
+            }
+        }
+
+        public Outcome HasProperty<TProperty>(string name) where TProperty : IProperty
+        {
+            lock (SyncRoot)
+            {
+                return _properties.TryGetValue(name, out var property) && property is TProperty ?
+                    Outcome.Success() :
+                    Outcome.Fail($"Property <{name}> does not exist in <{this}>.", this);
+            }
+        }
+
         public Outcome GetProperty(string name, out IProperty? property)
         {
             lock (SyncRoot)
@@ -189,6 +209,35 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             property = propertyT;
             return Outcome.Success();
+        }
+
+        public Outcome SetPropertyValue<TProperty>(string name, object? value)
+            where TProperty : class, IProperty
+        {
+            lock (SyncRoot)
+            {
+                if (GetProperty<TProperty>(name, out var existingProperty))
+                {
+                    var setDataOutcome = existingProperty!.SetData(value);
+                    return setDataOutcome;
+                }
+                return AddProperty<TProperty>(name, value, out _);
+            }
+        }
+
+        public Outcome GetPropertyValue<TProperty, TValue>(string name, out TValue? value)
+            where TProperty : class, IProperty<TValue>
+        {
+            lock (SyncRoot)
+            {
+                var getPropertyOutcome = GetProperty<TProperty>(name, out var property);
+                if (!getPropertyOutcome)
+                {
+                    value = default;
+                    return getPropertyOutcome;
+                }
+                return property!.Get(out value);
+            }
         }
 
         public Outcome AddComponent(IComponent component)
@@ -346,7 +395,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome HasComponent<TComponent>() where TComponent : IComponent
         {
-            lock (_syncRoot)
+            lock (SyncRoot)
             {
                 return !_components.OfType<TComponent>().Any() ?
                     Outcome.Fail($"No components in entity <{this}> of type <{typeof(TComponent).Name}>.", this) :
@@ -356,7 +405,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome GetComponent(Type componentType, out IComponent? component)
         {
-            lock (_syncRoot)
+            lock (SyncRoot)
             {
                 component = _components.FirstOrDefault(x => x.GetType().IsTypeOrDerived(componentType));
             }
@@ -370,7 +419,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome GetComponent<TComponent>(out TComponent? component) where TComponent : IComponent
         {
-            lock (_syncRoot)
+            lock (SyncRoot)
             {
                 component = _components
                     .OfType<TComponent>()
@@ -386,7 +435,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public TComponent? GetComponent<TComponent>() where TComponent : IComponent
         {
-            lock (_syncRoot)
+            lock (SyncRoot)
             {
                 return _components
                     .OfType<TComponent>()
@@ -396,7 +445,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome Dispose()
         {
-            lock (_syncRoot)
+            lock (SyncRoot)
             {
                 while (_components.Count > 0)
                 {

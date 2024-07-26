@@ -94,7 +94,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 var propertyAttribute = propertyInfo.GetAttribute<PropertyAttribute>()!;
                 IProperty? property;
-                if (propertyAttribute.Type != null)
+                if (propertyAttribute.Type != null && !Entity.HasProperty(propertyAttribute.Name))
                 {
                     var addPropertyOutcome = Entity.AddProperty(
                         propertyAttribute.Name,

@@ -7,7 +7,6 @@ using Newtonsoft.Json.Linq;
 namespace cpGames.core.EntityComponentFramework.impl
 {
     public class JsonPropertyConverter<TModel> : JsonConverter
-        where TModel : class
     {
         #region Methods
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
@@ -50,7 +49,6 @@ namespace cpGames.core.EntityComponentFramework.impl
     }
 
     public abstract class JsonProperty<TModel> : Property<TModel?>, IJsonProperty<TModel>
-        where TModel : class
     {
         #region Nested type: JsonComparer
         private class JsonComparer : EqualityComparer<TModel?>
@@ -85,7 +83,6 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         #region Constructors
         protected JsonProperty(Entity owner, string name, TModel defaultValue) : base(owner, name, defaultValue) { }
-        protected JsonProperty(Entity owner, string name) : base(owner, name, null) { }
         #endregion
 
         #region IJsonProperty<TModel> Members

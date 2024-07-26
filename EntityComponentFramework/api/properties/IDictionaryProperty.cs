@@ -11,6 +11,7 @@ namespace cpGames.core.EntityComponentFramework
         long Count { get; }
         bool Empty { get; }
         TValue? this[TKey key] { get; set; }
+        TTypedValue? Get<TTypedValue>(TKey key);
         ISignalOutcome<TKey> ElementGetSignal { get; }
         ISignalOutcome<TKey, TValue> BeginElementSetSignal { get; }
         ISignalOutcome<TKey, TValue> EndElementSetSignal { get; }
