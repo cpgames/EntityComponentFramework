@@ -31,11 +31,9 @@ public class ListTests
     public void TestAddRemoveElementsLinked()
     {
         var entity = new Entity(Id.INVALID);
-        var addOutcome = entity.AddProperty<ListProperty<int>>("list1", null, out var list1);
+        var addOutcome = entity.AddProperty<ListProperty<int>>("list1", out var list1);
         Assert.That(addOutcome, addOutcome.ErrorMessage);
-        var setOutcome = list1!.Set(new List<int>());
-        Assert.That(setOutcome, setOutcome.ErrorMessage);
-        var addOutcome2 = entity.AddProperty<ListProperty<int>>("list2", null, out var list2);
+        var addOutcome2 = entity.AddProperty<ListProperty<int>>("list2", out var list2);
         Assert.That(addOutcome2, addOutcome2.ErrorMessage);
         var linkOutcome = list2!.Link(list1);
         Assert.That(linkOutcome, linkOutcome.ErrorMessage);
@@ -53,7 +51,7 @@ public class ListTests
     public void TestCovariantLink()
     {
         var entity = new Entity(Id.INVALID);
-        var addDerivedListOutcome = entity.AddProperty<ListProperty<DerivedEntry>>("derived_list", null, out var derivedList);
+        var addDerivedListOutcome = entity.AddProperty<ListProperty<DerivedEntry>>("derived_list", out var derivedList);
         Assert.That(addDerivedListOutcome, addDerivedListOutcome.ErrorMessage);
         var setOutcome = derivedList!.Set(
             new List<DerivedEntry>
@@ -63,7 +61,7 @@ public class ListTests
                 new() { i = 3, a = "c" }
             });
         Assert.That(setOutcome, setOutcome.ErrorMessage);
-        var addBaseListOutcome = entity.AddProperty<ListProperty<BaseEntry>>("base_list", null, out var baseList);
+        var addBaseListOutcome = entity.AddProperty<ListProperty<BaseEntry>>("base_list", out var baseList);
         Assert.That(addBaseListOutcome, addBaseListOutcome.ErrorMessage);
         var linkOutcome = baseList!.Link(derivedList);
         Assert.That(linkOutcome, linkOutcome.ErrorMessage);

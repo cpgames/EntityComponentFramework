@@ -99,7 +99,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                     var addPropertyOutcome = Entity.AddProperty(
                         propertyAttribute.Name,
                         propertyAttribute.Type,
-                        propertyAttribute.DefaultValue,
                         out property);
                     if (!addPropertyOutcome)
                     {

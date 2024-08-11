@@ -60,7 +60,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
-        public TTypedValue? Get<TTypedValue>(TKey key)
+        public TTypedValue? GetElementValue<TTypedValue>(TKey key)
         {
             if (Get(out var dictionary) &&
                 dictionary!.TryGetValue(key, out var value) &&
@@ -109,7 +109,9 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return getOutcome;
             }
-            return dictionary!.ContainsKey(key) ? Outcome.Success() : Outcome.Fail($"Dictionary does not contain key {key}", this);
+            return dictionary!.ContainsKey(key) ?
+                Outcome.Success() :
+                Outcome.Fail($"Dictionary does not contain key {key}", this);
         }
 
         public Outcome GetElement(TKey key, out TValue? value)

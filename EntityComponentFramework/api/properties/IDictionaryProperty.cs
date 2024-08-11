@@ -3,7 +3,7 @@ using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework
 {
-    public interface IDictionaryProperty<TKey, TValue> : 
+    public interface IDictionaryProperty<TKey, TValue> :
         IProperty<Dictionary<TKey, TValue>>,
         IEnumerable<KeyValuePair<TKey, TValue>>
     {
@@ -11,7 +11,6 @@ namespace cpGames.core.EntityComponentFramework
         long Count { get; }
         bool Empty { get; }
         TValue? this[TKey key] { get; set; }
-        TTypedValue? Get<TTypedValue>(TKey key);
         ISignalOutcome<TKey> ElementGetSignal { get; }
         ISignalOutcome<TKey, TValue> BeginElementSetSignal { get; }
         ISignalOutcome<TKey, TValue> EndElementSetSignal { get; }
@@ -21,6 +20,7 @@ namespace cpGames.core.EntityComponentFramework
         #endregion
 
         #region Methods
+        TElementValue? GetElementValue<TElementValue>(TKey key);
         Outcome RemoveElement(TKey key);
         Outcome HasElement(TKey key);
         Outcome GetElement(TKey key, out TValue? value);

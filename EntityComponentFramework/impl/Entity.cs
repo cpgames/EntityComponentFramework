@@ -62,7 +62,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         public Outcome AddProperty(
             string name,
             Type type,
-            object? defaultValue,
             out IProperty? property)
         {
             lock (SyncRoot)
@@ -88,18 +87,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return Outcome.Fail($"Type <{type.Name}> must not be abstract.", this);
                 }
                 IProperty? propertyT;
-                if (defaultValue == null)
-                {
-                    propertyT = (IProperty)Activator.CreateInstance(type, this, name);
-                }
-                else
-                {
-                    propertyT = (IProperty)Activator.CreateInstance(
-                        type,
-                        this,
-                        name,
-                        defaultValue);
-                }
+                propertyT = (IProperty)Activator.CreateInstance(type, this, name);
                 if (propertyT == null)
                 {
                     property = null;
@@ -113,7 +101,6 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome AddProperty<TProperty>(
             string name,
-            object? defaultValue,
             out TProperty? property)
             where TProperty : class, IProperty
         {
@@ -122,7 +109,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                 var outcome = AddProperty(
                     name,
                     typeof(TProperty),
-                    defaultValue,
                     out var propertyBase);
                 if (!outcome)
                 {
@@ -221,7 +207,9 @@ namespace cpGames.core.EntityComponentFramework.impl
                     var setDataOutcome = existingProperty!.SetData(value);
                     return setDataOutcome;
                 }
-                return AddProperty<TProperty>(name, value, out _);
+                return
+                    AddProperty<TProperty>(name, out var newProperty) &&
+                    newProperty!.SetData(value);
             }
         }
 

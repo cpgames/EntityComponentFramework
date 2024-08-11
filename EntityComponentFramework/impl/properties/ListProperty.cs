@@ -8,7 +8,7 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class ListProperty<TElementValue> : Property<List<TElementValue>>, IListProperty<TElementValue>
     {
         #region Constructors
-        public ListProperty(Entity owner, string name, List<TElementValue> defaultValue) : base(owner, name, defaultValue)
+        public ListProperty(Entity owner, string name) : base(owner, name, new List<TElementValue>())
         {
             EntryAddedSignal.AddCommand(val =>
                 EntryObjAddedSignal.DispatchResult(val!) &&
@@ -17,8 +17,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                 EntryObjRemovedSignal.DispatchResult(val!) &&
                 EntryCountChangedSignal.DispatchResult());
         }
-
-        public ListProperty(Entity owner, string name) : this(owner, name, new List<TElementValue>()) { }
         #endregion
 
         #region IListProperty<TElementValue> Members
