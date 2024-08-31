@@ -26,25 +26,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         }
         #endregion
 
-        #region Events
-        private Outcome OnLinkedEndModify(object? data)
-        {
-            var convertOutcome = ConvertToValue(data, out var value);
-            if (!convertOutcome)
-            {
-                return convertOutcome;
-            }
-            if (ValueComparer.Equals(_value, value!))
-            {
-                return Outcome.Success();
-            }
-            return
-                BeginValueSetSignal.DispatchResult(value) &&
-                UpdateValue(value!) &&
-                EndValueSetSignal.DispatchResult(value);
-        }
-        #endregion
-
         #region IProperty<TValue> Members
         public string Name { get; }
         public Entity Owner { get; }
@@ -220,7 +201,9 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public virtual string ValueToString()
         {
-            return _value == null ? string.Empty : _value!.ToString();
+            return _value == null ?
+                string.Empty :
+                _value!.ToString();
         }
 
         public Outcome Link(IProperty otherProperty)
@@ -249,7 +232,9 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return unlinkOutcome;
             }
             _linkedProperty = null;
-            return reset ? Set(_defaultValue) : Outcome.Success();
+            return reset ?
+                Set(_defaultValue) :
+                Outcome.Success();
         }
 
         public Outcome IsLinked()
@@ -283,6 +268,23 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
+        private Outcome OnLinkedEndModify(object? data)
+        {
+            var convertOutcome = ConvertToValue(data, out var value);
+            if (!convertOutcome)
+            {
+                return convertOutcome;
+            }
+            if (ValueComparer.Equals(_value, value!))
+            {
+                return Outcome.Success();
+            }
+            return
+                BeginValueSetSignal.DispatchResult(value) &&
+                UpdateValue(value!) &&
+                EndValueSetSignal.DispatchResult(value);
+        }
+
         protected virtual Outcome CanLink(IProperty otherProperty)
         {
             if (otherProperty.ValueType != ValueType)
