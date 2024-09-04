@@ -38,7 +38,9 @@ namespace cpGames.core.EntityComponentFramework.impl
             var jsonObject = JObject.Load(reader);
             var model = jsonObject.ToObject<TModel>(serializer);
             var setOutcome = property.Set(model);
-            return !setOutcome ? null : existingValue;
+            return !setOutcome ?
+                null :
+                existingValue;
         }
 
         public override bool CanConvert(Type objectType)
@@ -67,7 +69,9 @@ namespace cpGames.core.EntityComponentFramework.impl
 
             public override int GetHashCode(TModel? obj)
             {
-                return obj != null ? obj.GetHashCode() : 0;
+                return obj != null ?
+                    obj.GetHashCode() :
+                    0;
             }
             #endregion
         }
@@ -159,6 +163,15 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         protected override Outcome ConvertToData(TModel? value, out object? data)
         {
+            if (string.IsNullOrEmpty(_jsonString) && value != null)
+            {
+                var refreshOutcome = RefreshJson();
+                if (!refreshOutcome)
+                {
+                    data = null;
+                    return refreshOutcome;
+                }
+            }
             data = _jsonString;
             return Outcome.Success();
         }

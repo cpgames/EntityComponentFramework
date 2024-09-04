@@ -69,6 +69,23 @@ namespace cpGames.core.EntityComponentFramework.impl
                 component!.Entity.GetComponent(out otherComponent);
         }
 
+        public Outcome GetDerivedNonDefault<TDerivedComponent>(out TDerivedComponent? derivedComponent) where TDerivedComponent : class, TComponent
+        {
+            var getBaseComponent = GetNonDefault(out var baseComponent);
+            if (!getBaseComponent)
+            {
+                derivedComponent = null;
+                return getBaseComponent;
+            }
+            if (baseComponent is not TDerivedComponent)
+            {
+                derivedComponent = null;
+                return Outcome.Fail($"Component {baseComponent!.GetType()} is not of type {typeof(TDerivedComponent)}", this);
+            }
+            derivedComponent = (TDerivedComponent)baseComponent;
+            return Outcome.Success();
+        }
+
         public Outcome HasTarget()
         {
             var getOutcome = GetNonDefault(out var value);

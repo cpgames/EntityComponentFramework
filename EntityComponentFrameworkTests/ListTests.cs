@@ -18,7 +18,7 @@ public class ListTests
     private class DerivedEntry : BaseEntry
     {
         #region Fields
-        public string a;
+        public string a = string.Empty;
         #endregion
     }
     #endregion
@@ -35,10 +35,10 @@ public class ListTests
         Assert.That(addOutcome, addOutcome.ErrorMessage);
         var addOutcome2 = entity.AddProperty<ListProperty<int>>("list2", out var list2);
         Assert.That(addOutcome2, addOutcome2.ErrorMessage);
-        var linkOutcome = list2!.Link(list1);
+        var linkOutcome = list2!.Link(list1!);
         Assert.That(linkOutcome, linkOutcome.ErrorMessage);
         // add value to list1 and verify it is in list2
-        var addValueOutcome = list1.AddEntry(1);
+        var addValueOutcome = list1!.AddEntry(1);
         Assert.That(addValueOutcome, addValueOutcome.ErrorMessage);
         Assert.That(list2.Contains(1), Is.True);
         // remove value from list1 and verify it is not in list2

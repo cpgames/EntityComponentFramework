@@ -21,6 +21,9 @@
         #region Methods
         Outcome GetOtherComponent<TOtherComponent>(out TOtherComponent? otherComponent)
             where TOtherComponent : class, IComponent;
+
+        Outcome GetDerivedNonDefault<TDerivedComponent>(out TDerivedComponent? derivedComponent)
+            where TDerivedComponent : class, TComponent;
         #endregion
     }
 }
