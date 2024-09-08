@@ -35,6 +35,8 @@ namespace cpGames.core.EntityComponentFramework
         Outcome AddEntry(TElementValue entry);
         Outcome RemoveEntry(TElementValue entry);
         Outcome HasEntry(TElementValue entry);
+        Outcome FindEntry(Predicate<TElementValue> match, out TElementValue? entry);
+        Outcome FindAllEntries(Predicate<TElementValue> match, out List<TElementValue>? entries);
         Outcome Clear();
         #endregion
     }

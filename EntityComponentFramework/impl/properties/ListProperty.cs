@@ -93,6 +93,32 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Fail($"List does not contain entry {entry}", this);
         }
 
+        public Outcome FindEntry(Predicate<TElementValue> match, out TElementValue? entry)
+        {
+            var getOutcome = Get(out var values);
+            if (!getOutcome)
+            {
+                entry = default;
+                return getOutcome;
+            }
+            entry = values!.Find(match);
+            return entry != null ?
+                Outcome.Success() :
+                Outcome.Fail("No entry found in list", this);
+        }
+
+        public Outcome FindAllEntries(Predicate<TElementValue> match, out List<TElementValue>? entries)
+        {
+            var getOutcome = Get(out var values);
+            if (!getOutcome)
+            {
+                entries = default;
+                return getOutcome;
+            }
+            entries = values!.FindAll(match);
+            return Outcome.Success();
+        }
+
         public Outcome Clear()
         {
             var getOutcome = Get(out var value);
