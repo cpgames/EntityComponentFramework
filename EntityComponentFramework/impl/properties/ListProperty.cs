@@ -93,29 +93,61 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Fail($"List does not contain entry {entry}", this);
         }
 
-        public Outcome FindEntry(Predicate<TElementValue> match, out TElementValue? entry)
+        public Outcome FindEntry(IListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
         {
-            var getOutcome = Get(out var values);
-            if (!getOutcome)
+            entry = default;
+            var outcome = Get(out var values);
+            if (!outcome)
             {
-                entry = default;
-                return getOutcome;
+                return outcome.Append(this);
             }
-            entry = values!.Find(match);
-            return entry != null ?
-                Outcome.Success() :
-                Outcome.Fail("No entry found in list", this);
+            if (filter == null)
+            {
+                if (values!.Count > 0)
+                {
+                    entry = values[0];
+                    return Outcome.Success();
+                }
+                return Outcome.Fail("No entry found in list", this);
+            }
+            foreach (var value in values!)
+            {
+                outcome = filter(value, out var result);
+                if (!outcome)
+                {
+                    entry = default;
+                    return outcome.Append(this);
+                }
+                if (result)
+                {
+                    entry = value;
+                    return Outcome.Success();
+                }
+            }
+            return Outcome.Fail("No entry found in list", this);
         }
 
-        public Outcome FindAllEntries(Predicate<TElementValue> match, out List<TElementValue>? entries)
+        public Outcome FindEntries(IListProperty<TElementValue>.FilterDelegate filter, out List<TElementValue>? entries)
         {
-            var getOutcome = Get(out var values);
-            if (!getOutcome)
+            entries = new List<TElementValue>();
+            var outcome = Get(out var values);
+            if (!outcome)
             {
-                entries = default;
-                return getOutcome;
+                return outcome.Append(this);
             }
-            entries = values!.FindAll(match);
+            foreach (var value in values!)
+            {
+                outcome = filter(value, out var result);
+                if (!outcome)
+                {
+                    entries = default;
+                    return outcome.Append(this);
+                }
+                if (result)
+                {
+                    entries.Add(value);
+                }
+            }
             return Outcome.Success();
         }
 

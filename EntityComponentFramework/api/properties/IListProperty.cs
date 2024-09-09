@@ -25,6 +25,10 @@ namespace cpGames.core.EntityComponentFramework
 
     public interface IListProperty<TElementValue> : IProperty<List<TElementValue>>, IListProperty, IEnumerable<TElementValue>
     {
+        #region Nested type: FilterDelegate
+        public delegate Outcome FilterDelegate(TElementValue element, out bool result);
+        #endregion
+
         #region Properties
         ISignalOutcome<TElementValue> EntryAddedSignal { get; }
         ISignalOutcome<TElementValue> EntryRemovedSignal { get; }
@@ -35,8 +39,8 @@ namespace cpGames.core.EntityComponentFramework
         Outcome AddEntry(TElementValue entry);
         Outcome RemoveEntry(TElementValue entry);
         Outcome HasEntry(TElementValue entry);
-        Outcome FindEntry(Predicate<TElementValue> match, out TElementValue? entry);
-        Outcome FindAllEntries(Predicate<TElementValue> match, out List<TElementValue>? entries);
+        Outcome FindEntry(FilterDelegate? filter, out TElementValue? entry);
+        Outcome FindEntries(FilterDelegate filter, out List<TElementValue>? entries);
         Outcome Clear();
         #endregion
     }
