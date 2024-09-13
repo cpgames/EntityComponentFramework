@@ -165,6 +165,13 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.", this);
         }
 
+        public Outcome ValueEquals(IProperty otherProperty)
+        {
+            return
+                otherProperty.GetData(out var data) &&
+                ValueEquals(data);
+        }
+
         public Outcome ValueNotEquals(object? data)
         {
             var beginGetOutcome = ValueGetSignal.DispatchResult();
@@ -192,6 +199,13 @@ namespace cpGames.core.EntityComponentFramework.impl
             return !value.Equals(_value) ?
                 Outcome.Success() :
                 Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.", this);
+        }
+
+        public Outcome ValueNotEquals(IProperty otherProperty)
+        {
+            return
+                otherProperty.GetData(out var data) &&
+                ValueNotEquals(data);
         }
 
         public Outcome IsDefault()
