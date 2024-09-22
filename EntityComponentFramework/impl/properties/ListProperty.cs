@@ -44,10 +44,11 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
         }
 
-        public Outcome HasEntryObj(object entryObj)
+        public Outcome HasEntryObj(object entryObj, out bool result)
         {
+            result = false;
             return entryObj is TElementValue entry ?
-                HasEntry(entry) :
+                HasEntry(entry, out result) :
                 Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
         }
 
@@ -81,16 +82,39 @@ namespace cpGames.core.EntityComponentFramework.impl
             return EntryRemovedSignal.DispatchResult(entry);
         }
 
-        public Outcome HasEntry(TElementValue entry)
+        public Outcome HasEntry(TElementValue entry, out bool result)
         {
-            var getOutcome = Get(out var value);
-            if (!getOutcome)
+            result = false;
+            var outcome = Get(out var value);
+            if (!outcome)
             {
-                return getOutcome;
+                return outcome.Append(this);
             }
-            return value!.Contains(entry) ?
-                Outcome.Success() :
-                Outcome.Fail($"List does not contain entry {entry}", this);
+            result = value!.Contains(entry);
+            return Outcome.Success();
+        }
+
+        public Outcome HasEntry(IListProperty<TElementValue>.FilterDelegate filter, out bool result)
+        {
+            result = false;
+            var outcome = Get(out var value);
+            if (!outcome)
+            {
+                return outcome.Append(this);
+            }
+            foreach (var entry in value!)
+            {
+                outcome = filter(entry, out result);
+                if (!outcome)
+                {
+                    return outcome.Append(this);
+                }
+                if (result)
+                {
+                    return Outcome.Success();
+                }
+            }
+            return Outcome.Success();
         }
 
         public Outcome FindEntry(IListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
@@ -153,12 +177,19 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome Clear()
         {
-            var getOutcome = Get(out var value);
-            if (!getOutcome)
+            var outcome = Get(out var value);
+            if (!outcome)
             {
-                return getOutcome;
+                return outcome.Append(this);
             }
-            value!.Clear();
+            while (value!.Count > 0)
+            {
+                outcome = RemoveEntry(value[0]);
+                if (!outcome)
+                {
+                    return outcome.Append(this);
+                }
+            }
             return Outcome.Success();
         }
 

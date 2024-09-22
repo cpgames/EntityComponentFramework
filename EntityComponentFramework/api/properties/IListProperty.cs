@@ -19,7 +19,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Methods
         Outcome AddEntryObj(object entryObj);
         Outcome RemoveEntryObj(object entryObj);
-        Outcome HasEntryObj(object entryObj);
+        Outcome HasEntryObj(object entryObj, out bool result);
         #endregion
     }
 
@@ -38,7 +38,8 @@ namespace cpGames.core.EntityComponentFramework
         #region Methods
         Outcome AddEntry(TElementValue entry);
         Outcome RemoveEntry(TElementValue entry);
-        Outcome HasEntry(TElementValue entry);
+        Outcome HasEntry(TElementValue entry, out bool result);
+        Outcome HasEntry(FilterDelegate filter, out bool result);
         Outcome FindEntry(FilterDelegate? filter, out TElementValue? entry);
         Outcome FindEntries(FilterDelegate filter, out List<TElementValue>? entries);
         Outcome Clear();
