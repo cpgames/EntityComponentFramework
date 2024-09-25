@@ -50,13 +50,13 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
     }
 
-    public abstract class JsonProperty<TModel> : Property<TModel?>, IJsonProperty<TModel>
+    public abstract class JsonProperty<TValue> : Property<TValue?>, IJsonProperty<TValue>
     {
         #region Nested type: JsonComparer
-        private class JsonComparer : EqualityComparer<TModel?>
+        private class JsonComparer : EqualityComparer<TValue?>
         {
             #region Methods
-            public override bool Equals(TModel? x, TModel? y)
+            public override bool Equals(TValue? x, TValue? y)
             {
                 if (ReferenceEquals(x, y))
                 {
@@ -67,7 +67,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return jsonX == jsonY;
             }
 
-            public override int GetHashCode(TModel? obj)
+            public override int GetHashCode(TValue? obj)
             {
                 return obj != null ?
                     obj.GetHashCode() :
@@ -82,15 +82,15 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Properties
-        protected override EqualityComparer<TModel?> ValueComparer { get; } = new JsonComparer();
+        protected override EqualityComparer<TValue?> ValueComparer { get; } = new JsonComparer();
         #endregion
 
         #region Constructors
-        protected JsonProperty(Entity owner, string name, TModel defaultValue) : base(owner, name, defaultValue) { }
+        protected JsonProperty(Entity owner, string name, TValue defaultValue) : base(owner, name, defaultValue) { }
         #endregion
 
-        #region IJsonProperty<TModel> Members
-        public Outcome Clone(out TModel? value)
+        #region IJsonProperty<TValue> Members
+        public Outcome Clone(out TValue? value)
         {
             value = default;
             return
@@ -117,7 +117,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
-        protected override Outcome ConvertToValue(object? data, out TModel? value)
+        protected override Outcome ConvertToValue(object? data, out TValue? value)
         {
             if (data is string strData)
             {
@@ -128,8 +128,8 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
                 try
                 {
-                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TModel))!;
-                    value = (TModel)valueObj;
+                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TValue))!;
+                    value = (TValue)valueObj;
                 }
                 catch (Exception e)
                 {
@@ -148,8 +148,8 @@ namespace cpGames.core.EntityComponentFramework.impl
                 try
                 {
                     strData = Encoding.UTF8.GetString(bytes);
-                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TModel))!;
-                    value = (TModel)valueObj;
+                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TValue))!;
+                    value = (TValue)valueObj;
                 }
                 catch (Exception e)
                 {
@@ -158,10 +158,15 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
                 return Outcome.Success();
             }
+            if (data is TValue newValue)
+            {
+                value = Clone(newValue);
+                return Outcome.Success();
+            }
             return base.ConvertToValue(data, out value);
         }
 
-        protected override Outcome ConvertToData(TModel? value, out object? data)
+        protected override Outcome ConvertToData(TValue? value, out object? data)
         {
             if (string.IsNullOrEmpty(_jsonString) && value != null)
             {
@@ -176,7 +181,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        protected override Outcome UpdateValue(TModel? value)
+        protected override Outcome UpdateValue(TValue? value)
         {
             try
             {
@@ -188,6 +193,16 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             _value = value;
             return Outcome.Success();
+        }
+
+        protected override TValue? Clone(TValue? value)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+            var json = JsonConvert.SerializeObject(value);
+            return JsonConvert.DeserializeObject<TValue>(json);
         }
         #endregion
     }

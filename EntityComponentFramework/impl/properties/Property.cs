@@ -335,9 +335,9 @@ namespace cpGames.core.EntityComponentFramework.impl
                 value = default;
                 return Outcome.Success();
             }
-            if (data is TValue)
+            if (data is TValue newValue)
             {
-                value = (TValue)data;
+                value = newValue;
                 return Outcome.Success();
             }
             value = default;
