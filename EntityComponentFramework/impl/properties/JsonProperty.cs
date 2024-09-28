@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class JsonPropertyConverter<TModel> : JsonConverter
+    public class JsonPropertyConverter<TValue> : JsonConverter
     {
         #region Methods
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
@@ -16,7 +16,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 writer.WriteNull();
                 return;
             }
-            var property = (JsonProperty<TModel>)value;
+            var property = (JsonProperty<TValue>)value;
             if (!property.GetData(out var data))
             {
                 writer.WriteNull();
@@ -31,12 +31,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             object? existingValue,
             JsonSerializer serializer)
         {
-            if (existingValue is not JsonProperty<TModel> property)
+            if (existingValue is not JsonProperty<TValue> property)
             {
                 return null;
             }
             var jsonObject = JObject.Load(reader);
-            var model = jsonObject.ToObject<TModel>(serializer);
+            var model = jsonObject.ToObject<TValue>(serializer);
             var setOutcome = property.Set(model);
             return !setOutcome ?
                 null :
@@ -45,7 +45,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public override bool CanConvert(Type objectType)
         {
-            return typeof(JsonProperty<TModel>).IsAssignableFrom(objectType);
+            return typeof(JsonProperty<TValue>).IsAssignableFrom(objectType);
         }
         #endregion
     }
@@ -106,7 +106,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             try
             {
-                _jsonString = JsonConvert.SerializeObject(_value);
+                _jsonString = JsonConvert.SerializeObject(_value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
             }
             catch (Exception e)
             {
@@ -201,7 +201,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return default;
             }
-            var json = JsonConvert.SerializeObject(value);
+            var json = JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
             return JsonConvert.DeserializeObject<TValue>(json);
         }
         #endregion
