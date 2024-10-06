@@ -136,40 +136,39 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        public Outcome ValueEquals(object? data)
+        public Outcome ValueEquals(object? data, out bool result)
         {
-            var beginGetOutcome = ValueGetSignal.DispatchResult();
-            if (!beginGetOutcome)
+            result = false;
+            var outcome = ValueGetSignal.DispatchResult();
+            if (!outcome)
             {
-                return beginGetOutcome;
+                return outcome.Append(this);
             }
             if (data == null)
             {
-                return _value == null ?
-                    Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.", this);
+                result = _value == null;
+                return Outcome.Success();
             }
-            var convertOutcome = ConvertToValue(data, out var value);
-            if (!convertOutcome)
+            outcome = ConvertToValue(data, out var value);
+            if (!outcome)
             {
-                return convertOutcome;
+                return outcome.Append(this);
             }
             if (value == null)
             {
-                return _value == null ?
-                    Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <null>.", this);
+                result = _value == null;
+                return Outcome.Success();
             }
-            return value.Equals(_value) ?
-                Outcome.Success() :
-                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> does not equal <{data}>.", this);
+            result = value.Equals(_value);
+            return Outcome.Success();
         }
 
-        public Outcome ValueEquals(IProperty otherProperty)
+        public Outcome ValueEquals(IProperty otherProperty, out bool result)
         {
+            result = false;
             return
                 otherProperty.GetData(out var data) &&
-                ValueEquals(data);
+                ValueEquals(data, out result);
         }
 
         public Outcome ValueNotEquals(object? data)
@@ -208,9 +207,9 @@ namespace cpGames.core.EntityComponentFramework.impl
                 ValueNotEquals(data);
         }
 
-        public Outcome IsDefault()
+        public Outcome IsDefault(out bool result)
         {
-            return ValueEquals(_defaultValue);
+            return ValueEquals(_defaultValue, out result);
         }
 
         public virtual string ValueToString()

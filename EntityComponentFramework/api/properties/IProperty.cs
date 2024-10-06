@@ -20,11 +20,11 @@ namespace cpGames.core.EntityComponentFramework
         Outcome GetData(out object? data);
         Outcome GetValueObj(out object? valueObj);
         Outcome UpdateValue();
-        Outcome ValueEquals(object? value);
-        Outcome ValueEquals(IProperty otherProperty);
+        Outcome ValueEquals(object? value, out bool result);
+        Outcome ValueEquals(IProperty otherProperty, out bool result);
         Outcome ValueNotEquals(object? value);
         Outcome ValueNotEquals(IProperty otherProperty);
-        Outcome IsDefault();
+        Outcome IsDefault(out bool result);
         string ValueToString();
         Outcome Link(IProperty otherProperty);
         Outcome Unlink(bool reset = true);

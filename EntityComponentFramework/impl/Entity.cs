@@ -461,15 +461,17 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             foreach (var propertyValue in propertyValues)
             {
-                var getPropertyOutcome = GetProperty(propertyValue.Key, out var property);
-                if (!getPropertyOutcome)
+                var result = default(bool);
+                var outcome =
+                    GetProperty(propertyValue.Key, out var property) &&
+                    property!.ValueEquals(propertyValue.Value, out result);
+                if (!outcome)
                 {
-                    return getPropertyOutcome;
+                    return outcome.Append(this);
                 }
-                var equalsOutcome = property!.ValueEquals(propertyValue.Value);
-                if (!equalsOutcome)
+                if (!result)
                 {
-                    return equalsOutcome;
+                    return Outcome.Fail($"Property <{propertyValue.Key}> does not have value <{propertyValue.Value}>.", this);
                 }
             }
             return Outcome.Success();

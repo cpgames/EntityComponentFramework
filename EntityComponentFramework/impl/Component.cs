@@ -36,8 +36,8 @@ namespace cpGames.core.EntityComponentFramework.impl
             return
                 BeginConnectedSignal.DispatchResult(this) &&
                 RegisterWithContext() &&
-                ConnectRequiredComponents() &&
                 ConnectRequiredProperties() &&
+                ConnectRequiredComponents() &&
                 ConnectInternal() &&
                 EndConnectedSignal.DispatchResult(this);
         }
