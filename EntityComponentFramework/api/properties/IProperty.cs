@@ -41,6 +41,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Methods
         Outcome Set(TValue value);
         Outcome Set(IProperty<TValue> otherProperty);
+        Outcome SetDefault(TValue value);
         Outcome Get(out TValue? value);
         Outcome GetNonDefault(out TValue? value);
         Outcome Equals(TValue value);

@@ -58,16 +58,18 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region IFloatProperty Members
         public Outcome Add(float value)
         {
-            return
+            var outcome =
                 Get(out var currentValue) &&
                 Set(currentValue + value);
+            return outcome.Append(this);
         }
 
         public Outcome Subtract(float value)
         {
-            return
+            var outcome =
                 Get(out var currentValue) &&
                 Set(currentValue - value);
+            return outcome.Append(this);
         }
         #endregion
 

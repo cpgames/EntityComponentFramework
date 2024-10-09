@@ -8,7 +8,7 @@ namespace cpGames.core.EntityComponentFramework.impl
     {
         #region Fields
         private IProperty? _linkedProperty;
-        protected readonly TValue _defaultValue;
+        private TValue _defaultValue;
         protected TValue _value;
         #endregion
 
@@ -105,6 +105,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             return
                 otherProperty.Get(out var otherValue) &&
                 Set(otherValue!);
+        }
+
+        public Outcome SetDefault(TValue value)
+        {
+            _defaultValue = value;
+            return Outcome.Success();
         }
 
         public Outcome Get(out TValue? value)

@@ -8,13 +8,16 @@ namespace cpGames.core.EntityComponentFramework
         #region Properties
         public string Name { get; }
         public Type? Type { get; }
+
+        public int Order { get; }
         #endregion
 
         #region Constructors
-        public PropertyAttribute(string name, Type? type = default)
+        public PropertyAttribute(string name, Type? type = default, int order = 0)
         {
             Name = name;
             Type = type;
+            Order = order;
         }
         #endregion
     }

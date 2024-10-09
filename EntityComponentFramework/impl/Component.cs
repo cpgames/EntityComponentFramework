@@ -90,7 +90,8 @@ namespace cpGames.core.EntityComponentFramework.impl
         private Outcome ConnectRequiredProperties()
         {
             var propertyInfos = GetType().GetProperties()
-                .Where(x => x.HasAttribute<PropertyAttribute>());
+                .Where(x => x.HasAttribute<PropertyAttribute>())
+                .OrderBy(x => x.GetAttribute<PropertyAttribute>()!.Order);
             foreach (var propertyInfo in propertyInfos)
             {
                 var propertyAttribute = propertyInfo.GetAttribute<PropertyAttribute>()!;
