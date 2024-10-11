@@ -107,7 +107,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Set(otherValue!);
         }
 
-        public Outcome SetDefault(TValue value)
+        public Outcome SetDefaultValue(TValue value)
         {
             _defaultValue = value;
             return Outcome.Success();
@@ -216,6 +216,11 @@ namespace cpGames.core.EntityComponentFramework.impl
         public Outcome IsDefault(out bool result)
         {
             return ValueEquals(_defaultValue, out result);
+        }
+
+        public Outcome ResetToDefault()
+        {
+            return Set(_defaultValue);
         }
 
         public virtual string ValueToString()

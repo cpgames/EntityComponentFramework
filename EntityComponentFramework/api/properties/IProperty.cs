@@ -25,6 +25,7 @@ namespace cpGames.core.EntityComponentFramework
         Outcome ValueNotEquals(object? value);
         Outcome ValueNotEquals(IProperty otherProperty);
         Outcome IsDefault(out bool result);
+        Outcome ResetToDefault();
         string ValueToString();
         Outcome Link(IProperty otherProperty);
         Outcome Unlink(bool reset = true);
@@ -41,7 +42,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Methods
         Outcome Set(TValue value);
         Outcome Set(IProperty<TValue> otherProperty);
-        Outcome SetDefault(TValue value);
+        Outcome SetDefaultValue(TValue value);
         Outcome Get(out TValue? value);
         Outcome GetNonDefault(out TValue? value);
         Outcome Equals(TValue value);
