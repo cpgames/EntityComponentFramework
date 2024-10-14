@@ -24,6 +24,14 @@ public class LinkTests
             Assert.That(f2, Is.Not.Null);
         });
 
+        // try to add f2 and have a failure
+        addOutcome = entity.AddProperty("f2", out IntProperty? i1);
+        Assert.Multiple(() =>
+        {
+            Assert.That(addOutcome, Is.False);
+            Assert.That(f2, Is.Null);
+        });
+
         var linkOutcome = f2!.Link(f1!);
         Assert.Multiple(() =>
         {

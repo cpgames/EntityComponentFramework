@@ -41,7 +41,8 @@ namespace cpGames.core.EntityComponentFramework
         Outcome HasEntry(TElementValue entry, out bool result);
         Outcome HasEntry(FilterDelegate filter, out bool result);
         Outcome FindEntry(FilterDelegate? filter, out TElementValue? entry);
-        Outcome FindEntries(FilterDelegate filter, out List<TElementValue>? entries);
+        Outcome TryFindEntry(FilterDelegate? filter, out TElementValue? entry);
+        Outcome FindEntries(FilterDelegate filter, out List<TElementValue> entries);
         Outcome Clear();
         #endregion
     }

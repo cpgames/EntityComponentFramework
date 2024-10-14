@@ -98,6 +98,22 @@ namespace cpGames.core.EntityComponentFramework.impl
                 ConvertToValue(data, out value);
         }
 
+        public Outcome GetDerivedNonDefault<TDerivedModel>(out TDerivedModel? derivedModel) where TDerivedModel : class, TValue
+        {
+            derivedModel = default;
+            var outcome = GetNonDefault(out var model);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (model is not TDerivedModel derived)
+            {
+                return Outcome.Fail($"Model is not of type {typeof(TDerivedModel).Name}");
+            }
+            derivedModel = derived;
+            return Outcome.Success();
+        }
+
         public Outcome RefreshJson()
         {
             if (_value == null)
@@ -110,7 +126,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             catch (Exception e)
             {
-                return Outcome.Fail(e.Message, this);
+                return Outcome.Fail(e.Message);
             }
             return Outcome.Success();
         }
@@ -134,7 +150,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 catch (Exception e)
                 {
                     value = default;
-                    return Outcome.Fail(e.Message, this);
+                    return Outcome.Fail(e.Message);
                 }
                 return Outcome.Success();
             }
@@ -189,7 +205,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             catch (Exception e)
             {
-                return Outcome.Fail(e.Message, this);
+                return Outcome.Fail(e.Message);
             }
             _value = value;
             return Outcome.Success();

@@ -7,6 +7,7 @@ namespace cpGames.core.EntityComponentFramework.impl
     public abstract class Property<TValue> : IProperty<TValue>
     {
         #region Fields
+        private bool _connected;
         private IProperty? _linkedProperty;
         private TValue _defaultValue;
         protected TValue _value;
@@ -22,7 +23,6 @@ namespace cpGames.core.EntityComponentFramework.impl
             Owner = owner;
             Name = name;
             _defaultValue = defaultValue;
-            _value = Clone(defaultValue);
         }
         #endregion
 
@@ -33,6 +33,18 @@ namespace cpGames.core.EntityComponentFramework.impl
         public ISignalOutcome<object?> BeginValueSetSignal { get; } = new LazySignalOutcome<object?>();
         public ISignalOutcome<object?> EndValueSetSignal { get; } = new LazySignalOutcome<object?>();
         public Type ValueType => typeof(TValue);
+
+        public virtual Outcome Connect()
+        {
+            _connected = true;
+            return ResetToDefault();
+        }
+
+        public virtual Outcome Disconnect()
+        {
+            _connected = false;
+            return Outcome.Success();
+        }
 
         public Outcome SetData(object? data)
         {
@@ -93,11 +105,30 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Outcome.Success();
             }
-            return
-                BeginValueSetSignal.DispatchResult(value) &&
+            if (_connected)
+            {
+                var beginSetOutcome = BeginValueSetSignal.DispatchResult(value);
+                if (!beginSetOutcome)
+                {
+                    return beginSetOutcome;
+                }
+            }
+            var outcome =
                 Unlink(false) &&
-                UpdateValue(value) &&
-                EndValueSetSignal.DispatchResult(value);
+                UpdateValue(value);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (_connected)
+            {
+                var endSetOutcome = EndValueSetSignal.DispatchResult(value);
+                if (!endSetOutcome)
+                {
+                    return endSetOutcome;
+                }
+            }
+            return Outcome.Success();
         }
 
         public Outcome Set(IProperty<TValue> otherProperty)
@@ -137,7 +168,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (ValueComparer.Equals(value!, _defaultValue))
             {
-                return Outcome.Fail($"<{Owner}:{Name}> Value <{value}> is default value.", this);
+                return Outcome.Fail($"<{Owner}:{Name}> Value <{value}> is default value.");
             }
             return Outcome.Success();
         }
@@ -148,7 +179,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome = ValueGetSignal.DispatchResult();
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
             }
             if (data == null)
             {
@@ -158,7 +189,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             outcome = ConvertToValue(data, out var value);
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
             }
             if (value == null)
             {
@@ -188,7 +219,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _value != null ?
                     Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.", this);
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
             }
             var convertOutcome = ConvertToValue(data, out var value);
             if (!convertOutcome)
@@ -199,11 +230,11 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return _value != null ?
                     Outcome.Success() :
-                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.", this);
+                    Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <null>.");
             }
             return !value.Equals(_value) ?
                 Outcome.Success() :
-                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.", this);
+                Outcome.Fail($"<{Owner}:{Name}> Value <{_value}> equals <{data}>.");
         }
 
         public Outcome ValueNotEquals(IProperty otherProperty)
@@ -220,7 +251,7 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome ResetToDefault()
         {
-            return Set(_defaultValue);
+            return Set(Clone(_defaultValue));
         }
 
         public virtual string ValueToString()
@@ -248,12 +279,12 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Outcome.Success();
             }
-            var unlinkOutcome =
+            var outcome =
                 UnlinkInternal(_linkedProperty!) &&
                 _linkedProperty!.EndValueSetSignal.RemoveCommand(this);
-            if (!unlinkOutcome)
+            if (!outcome)
             {
-                return unlinkOutcome;
+                return outcome;
             }
             _linkedProperty = null;
             return reset ?
@@ -261,25 +292,21 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Success();
         }
 
-        public Outcome IsLinked()
+        public bool IsLinked()
         {
-            return _linkedProperty != null ?
-                Outcome.Success() :
-                Outcome.Fail($"<{Owner}:{Name}> is not linked.", this);
+            return _linkedProperty != null;
         }
 
-        public Outcome Equals(TValue value)
+        public Outcome Equals(TValue value, out bool result)
         {
-            var getValueOutcome = Get(out var myValue);
-            if (!getValueOutcome)
+            result = false;
+            var outcome = Get(out var myValue);
+            if (!outcome)
             {
-                return getValueOutcome;
+                return outcome;
             }
-            if (ValueComparer.Equals(myValue!, value))
-            {
-                return Outcome.Success();
-            }
-            return Outcome.Fail($"<{Owner}:{Name}> Value <{myValue}> does not equal <{value}>.", this);
+            result = ValueComparer.Equals(myValue!, value);
+            return Outcome.Success();
         }
 
         public Outcome UpdateValue()
@@ -313,7 +340,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             if (otherProperty.ValueType != ValueType)
             {
-                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.", this);
+                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
             }
             return Outcome.Success();
         }
@@ -351,7 +378,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             value = default;
-            return Outcome.Fail($"<{Owner}:{Name}> Failed to convert <{data?.GetType().Name}> to <{typeof(TValue).Name}>.", this);
+            return Outcome.Fail($"<{Owner}:{Name}> Failed to convert <{data.GetType().Name}> to <{typeof(TValue).Name}>.");
         }
 
         protected virtual Outcome ConvertToData(TValue? value, out object? data)

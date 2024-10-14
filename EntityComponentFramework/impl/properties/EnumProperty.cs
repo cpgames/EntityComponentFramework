@@ -22,7 +22,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Enum.TryParse((string)data, out value) ?
                     Outcome.Success() :
-                    Outcome.Fail($"Failed to convert <{(string)data}> to <{typeof(TEnum).Name}>.", this);
+                    Outcome.Fail($"Failed to convert <{(string)data}> to <{typeof(TEnum).Name}>.");
             }
             if (data is long dataLong)
             {

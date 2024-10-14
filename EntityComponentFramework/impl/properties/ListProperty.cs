@@ -34,14 +34,14 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             return entryObj is TElementValue entry ?
                 AddEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}");
         }
 
         public Outcome RemoveEntryObj(object entryObj)
         {
             return entryObj is TElementValue entry ?
                 RemoveEntry(entry) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}");
         }
 
         public Outcome HasEntryObj(object entryObj, out bool result)
@@ -49,7 +49,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             result = false;
             return entryObj is TElementValue entry ?
                 HasEntry(entry, out result) :
-                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}", this);
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}");
         }
 
         public Outcome AddEntry(TElementValue entry)
@@ -61,7 +61,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (value!.Contains(entry))
             {
-                return Outcome.Fail($"List already contains entry {entry}", this);
+                return Outcome.Fail($"List already contains entry {entry}");
             }
             value.Add(entry);
             return EntryAddedSignal.DispatchResult(entry);
@@ -76,7 +76,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (!value!.Contains(entry))
             {
-                return Outcome.Fail($"List does not contain entry {entry}", this);
+                return Outcome.Fail($"List does not contain entry {entry}");
             }
             value.Remove(entry);
             return EntryRemovedSignal.DispatchResult(entry);
@@ -88,7 +88,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome = Get(out var value);
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
             }
             result = value!.Contains(entry);
             return Outcome.Success();
@@ -100,14 +100,14 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome = Get(out var value);
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
             }
             foreach (var entry in value!)
             {
                 outcome = filter(entry, out result);
                 if (!outcome)
                 {
-                    return outcome.Append(this);
+                    return outcome;
                 }
                 if (result)
                 {
@@ -123,7 +123,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome = Get(out var values);
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
             }
             if (filter == null)
             {
@@ -132,7 +132,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     entry = values[0];
                     return Outcome.Success();
                 }
-                return Outcome.Fail("No entry found in list", this);
+                return Outcome.Fail("No entry found in list");
             }
             foreach (var value in values!)
             {
@@ -140,7 +140,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 if (!outcome)
                 {
                     entry = default;
-                    return outcome.Append(this);
+                    return outcome;
                 }
                 if (result)
                 {
@@ -148,24 +148,56 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return Outcome.Success();
                 }
             }
-            return Outcome.Fail("No entry found in list", this);
+            return Outcome.Fail("No entry found in list");
         }
 
-        public Outcome FindEntries(IListProperty<TElementValue>.FilterDelegate filter, out List<TElementValue>? entries)
+        public Outcome TryFindEntry(IListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
         {
-            entries = new List<TElementValue>();
+            entry = default;
             var outcome = Get(out var values);
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
+            }
+            if (filter == null)
+            {
+                if (values!.Count > 0)
+                {
+                    entry = values[0];
+                }
+                return Outcome.Success();
             }
             foreach (var value in values!)
             {
                 outcome = filter(value, out var result);
                 if (!outcome)
                 {
-                    entries = default;
-                    return outcome.Append(this);
+                    return outcome;
+                }
+                if (result)
+                {
+                    entry = value;
+                    break;
+                }
+            }
+            return Outcome.Success();
+        }
+
+        public Outcome FindEntries(IListProperty<TElementValue>.FilterDelegate filter, out List<TElementValue> entries)
+        {
+            entries = new List<TElementValue>();
+            var outcome = Get(out var values);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            foreach (var value in values!)
+            {
+                outcome = filter(value, out var result);
+                if (!outcome)
+                {
+                    entries = new List<TElementValue>();
+                    return outcome;
                 }
                 if (result)
                 {
@@ -180,14 +212,14 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome = Get(out var value);
             if (!outcome)
             {
-                return outcome.Append(this);
+                return outcome;
             }
             while (value!.Count > 0)
             {
                 outcome = RemoveEntry(value[0]);
                 if (!outcome)
                 {
-                    return outcome.Append(this);
+                    return outcome;
                 }
             }
             return Outcome.Success();
@@ -218,7 +250,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             value = default;
-            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TElementValue)}", this);
+            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TElementValue)}");
         }
 
         protected override Outcome ConvertToValue(object? data, out List<TElementValue>? value)
@@ -247,7 +279,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 if (!ElementType.IsAssignableFrom(otherListProperty.ElementType))
                 {
-                    return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant", this);
+                    return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant");
                 }
                 return Outcome.Success();
             }

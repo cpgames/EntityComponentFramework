@@ -8,12 +8,7 @@
         #endregion
     }
 
-    public interface IReferenceProperty : IProperty
-    {
-        #region Methods
-        Outcome HasTarget();
-        #endregion
-    }
+    public interface IReferenceProperty : IProperty { }
 
     public interface IReferenceProperty<TComponent> : IProperty<TComponent?>, IReferenceProperty
         where TComponent : class, IComponent

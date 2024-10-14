@@ -11,6 +11,9 @@
     {
         #region Methods
         Outcome Clone(out TModel? value);
+
+        Outcome GetDerivedNonDefault<TDerivedModel>(out TDerivedModel? derivedModel)
+            where TDerivedModel : class, TModel;
         #endregion
     }
 }

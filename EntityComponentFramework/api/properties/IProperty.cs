@@ -16,6 +16,8 @@ namespace cpGames.core.EntityComponentFramework
         #endregion
 
         #region Methods
+        Outcome Connect();
+        Outcome Disconnect();
         Outcome SetData(object? data);
         Outcome GetData(out object? data);
         Outcome GetValueObj(out object? valueObj);
@@ -29,7 +31,7 @@ namespace cpGames.core.EntityComponentFramework
         string ValueToString();
         Outcome Link(IProperty otherProperty);
         Outcome Unlink(bool reset = true);
-        Outcome IsLinked();
+        bool IsLinked();
         #endregion
     }
 
@@ -45,7 +47,7 @@ namespace cpGames.core.EntityComponentFramework
         Outcome SetDefaultValue(TValue value);
         Outcome Get(out TValue? value);
         Outcome GetNonDefault(out TValue? value);
-        Outcome Equals(TValue value);
+        Outcome Equals(TValue value, out bool result);
         #endregion
     }
 }

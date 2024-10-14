@@ -61,7 +61,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome =
                 Get(out var currentValue) &&
                 Set(currentValue + value);
-            return outcome.Append(this);
+            return outcome;
         }
 
         public Outcome Subtract(float value)
@@ -69,7 +69,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var outcome =
                 Get(out var currentValue) &&
                 Set(currentValue - value);
-            return outcome.Append(this);
+            return outcome;
         }
         #endregion
 

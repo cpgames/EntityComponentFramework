@@ -61,6 +61,22 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region IReferenceProperty<TComponent> Members
+        public override Outcome Connect()
+        {
+            return
+                base.Connect() &&
+                BeginValueSetSignal.AddCommand(OnBeginValueSet, this) &&
+                EndValueSetSignal.AddCommand(OnEndValueSet, this);
+        }
+
+        public override Outcome Disconnect()
+        {
+            return
+                BeginValueSetSignal.RemoveCommand(this) &&
+                EndValueSetSignal.RemoveCommand(this) &&
+                base.Disconnect();
+        }
+
         public Outcome GetOtherComponent<TOtherComponent>(out TOtherComponent? otherComponent) where TOtherComponent : class, IComponent
         {
             otherComponent = null;
@@ -80,22 +96,10 @@ namespace cpGames.core.EntityComponentFramework.impl
             if (baseComponent is not TDerivedComponent)
             {
                 derivedComponent = null;
-                return Outcome.Fail($"Component {baseComponent!.GetType()} is not of type {typeof(TDerivedComponent)}", this);
+                return Outcome.Fail($"Component {baseComponent!.GetType()} is not of type {typeof(TDerivedComponent)}");
             }
             derivedComponent = (TDerivedComponent)baseComponent;
             return Outcome.Success();
-        }
-
-        public Outcome HasTarget()
-        {
-            var getOutcome = GetNonDefault(out var value);
-            if (!getOutcome)
-            {
-                return getOutcome;
-            }
-            return value != null ?
-                Outcome.Success() :
-                Outcome.Fail($"Reference {Name} is not established.", this);
         }
         #endregion
 
@@ -145,7 +149,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (component is not TComponent)
             {
-                return Outcome.Fail($"Component {component!.GetType()} is not of type {typeof(TComponent)}", this);
+                return Outcome.Fail($"Component {component!.GetType()} is not of type {typeof(TComponent)}");
             }
             value = (TComponent)component;
             return Outcome.Success();
@@ -169,6 +173,29 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             data = address;
             return Outcome.Success();
+        }
+
+        private Outcome OnBeginValueSet(object? value)
+        {
+            if (_value != null)
+            {
+                return _value.BeginDisconnectedSignal.RemoveCommand(this);
+            }
+            return Outcome.Success();
+        }
+
+        private Outcome OnEndValueSet(object? value)
+        {
+            if (value is TComponent component)
+            {
+                return component.BeginDisconnectedSignal.AddCommand(OnReferencedComponentBeginDisconnected, this);
+            }
+            return Outcome.Success();
+        }
+
+        private Outcome OnReferencedComponentBeginDisconnected(object? value)
+        {
+            return ResetToDefault();
         }
         #endregion
     }
