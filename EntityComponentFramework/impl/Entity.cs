@@ -238,13 +238,12 @@ namespace cpGames.core.EntityComponentFramework.impl
                 {
                     return Outcome.Fail($"Component <{component.GetType().Name}> already exists in <{this}>.");
                 }
-                _components.Add(component);
-                var connectOutcome = component.Connect(this);
-                if (!connectOutcome)
+                var outcome = component.Connect(this);
+                if (!outcome)
                 {
-                    _components.Remove(component);
-                    return connectOutcome;
+                    return outcome;
                 }
+                _components.Add(component);
                 return Outcome.Success();
             }
         }
@@ -266,13 +265,12 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return Outcome.Fail($"Component of type <{componentType.Name}> already exists in <{this}>.");
                 }
                 var component = (IComponent)Activator.CreateInstance(componentType, args);
-                _components.Add(component);
-                var connectOutcome = component.Connect(this);
-                if (!connectOutcome)
+                var outcome = component.Connect(this);
+                if (!outcome)
                 {
-                    _components.Remove(component);
-                    return connectOutcome;
+                    return outcome;
                 }
+                _components.Add(component);
                 return Outcome.Success();
             }
         }
@@ -301,13 +299,12 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return Outcome.Fail($"Component of type <{componentType.Name}> already exists in <{this}>.");
                 }
                 component = (IComponent)Activator.CreateInstance(componentType, args);
-                _components.Add(component);
-                var connectOutcome = component.Connect(this);
-                if (!connectOutcome)
+                var outcome = component.Connect(this);
+                if (!outcome)
                 {
-                    _components.Remove(component);
-                    return connectOutcome;
+                    return outcome;
                 }
+                _components.Add(component);
                 return Outcome.Success();
             }
         }
@@ -377,19 +374,31 @@ namespace cpGames.core.EntityComponentFramework.impl
                 var component = _components.OfType<TComponent>().FirstOrDefault();
                 if (component == null)
                 {
-                    return Outcome.Fail($"Component in entity <{this}> of type <{typeof(TComponent).Name}> already exists.");
+                    return Outcome.Fail($"Component of type <{typeof(TComponent)}> does not exist in <{this}>.");
                 }
                 return RemoveComponent(component);
             }
         }
 
-        public Outcome HasComponent<TComponent>() where TComponent : IComponent
+        public Outcome TryRemoveComponent<TComponent>() where TComponent : IComponent
         {
             lock (SyncRoot)
             {
-                return !_components.OfType<TComponent>().Any() ?
-                    Outcome.Fail($"No components in entity <{this}> of type <{typeof(TComponent).Name}>.") :
-                    Outcome.Success();
+                var component = _components.OfType<TComponent>().FirstOrDefault();
+                if (component == null)
+                {
+                    return Outcome.Success();
+                }
+                return RemoveComponent(component);
+            }
+        }
+
+        public Outcome HasComponent<TComponent>(out bool result) where TComponent : IComponent
+        {
+            lock (SyncRoot)
+            {
+                result = _components.OfType<TComponent>().Any();
+                return Outcome.Success();
             }
         }
 
@@ -423,11 +432,21 @@ namespace cpGames.core.EntityComponentFramework.impl
                 component = _components
                     .OfType<TComponent>()
                     .FirstOrDefault();
-                // ReSharper disable once ConvertIfStatementToReturnStatement for debugging
                 if (component == null)
                 {
                     return Outcome.Fail($"No component of type <{typeof(TComponent)}> exists.");
                 }
+                return Outcome.Success();
+            }
+        }
+
+        public Outcome TryGetComponent<TComponent>(out TComponent? component) where TComponent : IComponent
+        {
+            lock (SyncRoot)
+            {
+                component = _components
+                    .OfType<TComponent>()
+                    .FirstOrDefault();
                 return Outcome.Success();
             }
         }

@@ -9,16 +9,16 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Fields
         private bool _connected;
         private IProperty? _linkedProperty;
-        private TValue _defaultValue;
-        protected TValue _value;
+        private TValue? _defaultValue;
+        protected TValue? _value;
         #endregion
 
         #region Properties
-        protected virtual EqualityComparer<TValue> ValueComparer { get; } = EqualityComparer<TValue>.Default;
+        protected virtual EqualityComparer<TValue?> ValueComparer { get; } = EqualityComparer<TValue?>.Default;
         #endregion
 
         #region Constructors
-        protected Property(Entity owner, string name, TValue defaultValue)
+        protected Property(Entity owner, string name, TValue? defaultValue)
         {
             Owner = owner;
             Name = name;
@@ -99,7 +99,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
-        public Outcome Set(TValue value)
+        public Outcome Set(TValue? value)
         {
             if (ValueComparer.Equals(_value, value))
             {
@@ -359,7 +359,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        protected virtual Outcome UpdateValue(TValue value)
+        protected virtual Outcome UpdateValue(TValue? value)
         {
             _value = value;
             return Outcome.Success();
@@ -387,7 +387,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        protected virtual TValue Clone(TValue value)
+        protected virtual TValue? Clone(TValue? value)
         {
             return value;
         }

@@ -86,7 +86,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Constructors
-        protected JsonProperty(Entity owner, string name, TValue defaultValue) : base(owner, name, defaultValue) { }
+        protected JsonProperty(Entity owner, string name, TValue? defaultValue) : base(owner, name, defaultValue) { }
         #endregion
 
         #region IJsonProperty<TValue> Members

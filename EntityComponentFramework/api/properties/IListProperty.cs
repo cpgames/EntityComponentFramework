@@ -38,6 +38,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Methods
         Outcome AddEntry(TElementValue entry);
         Outcome RemoveEntry(TElementValue entry);
+        Outcome RemoveEntry(FilterDelegate filter);
         Outcome HasEntry(TElementValue entry, out bool result);
         Outcome HasEntry(FilterDelegate filter, out bool result);
         Outcome FindEntry(FilterDelegate? filter, out TElementValue? entry);

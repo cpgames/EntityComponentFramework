@@ -54,32 +54,70 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome AddEntry(TElementValue entry)
         {
-            var getOutcome = Get(out var value);
-            if (!getOutcome)
+            var outcome = Get(out var value);
+            if (!outcome)
             {
-                return getOutcome;
+                return outcome;
             }
             if (value!.Contains(entry))
             {
                 return Outcome.Fail($"List already contains entry {entry}");
             }
             value.Add(entry);
+            if (entry is IComponent component)
+            {
+                outcome = component.BeginDisconnectedSignal.AddCommand(OnComponentBeginDisconnected, this);
+                if (!outcome)
+                {
+                    return outcome;
+                }
+            }
             return EntryAddedSignal.DispatchResult(entry);
         }
 
         public Outcome RemoveEntry(TElementValue entry)
         {
-            var getOutcome = Get(out var value);
-            if (!getOutcome)
+            var outcome = Get(out var value);
+            if (!outcome)
             {
-                return getOutcome;
+                return outcome;
             }
             if (!value!.Contains(entry))
             {
                 return Outcome.Fail($"List does not contain entry {entry}");
             }
             value.Remove(entry);
+            if (entry is IComponent component)
+            {
+                outcome = component.BeginDisconnectedSignal.RemoveCommand(this);
+                if (!outcome)
+                {
+                    return outcome;
+                }
+            }
             return EntryRemovedSignal.DispatchResult(entry);
+        }
+
+        public Outcome RemoveEntry(IListProperty<TElementValue>.FilterDelegate filter)
+        {
+            var outcome = Get(out var value);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            foreach (var entry in value!)
+            {
+                outcome = filter(entry, out var result);
+                if (!outcome)
+                {
+                    return outcome;
+                }
+                if (result)
+                {
+                    return RemoveEntry(entry);
+                }
+            }
+            return Outcome.Success();
         }
 
         public Outcome HasEntry(TElementValue entry, out bool result)
@@ -237,6 +275,10 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public override string ValueToString()
         {
+            if (_value == null)
+            {
+                return "null";
+            }
             return _value.Count.ToString();
         }
         #endregion
@@ -304,9 +346,22 @@ namespace cpGames.core.EntityComponentFramework.impl
                 base.UnlinkInternal(otherProperty);
         }
 
-        protected override List<TElementValue> Clone(List<TElementValue> value)
+        protected override List<TElementValue> Clone(List<TElementValue>? value)
         {
+            if (value == null)
+            {
+                return new List<TElementValue>();
+            }
             return new List<TElementValue>(value);
+        }
+
+        private Outcome OnComponentBeginDisconnected(object? value)
+        {
+            if (value is TElementValue entry)
+            {
+                return RemoveEntry(entry);
+            }
+            return Outcome.Fail("Invalid component type");
         }
         #endregion
     }

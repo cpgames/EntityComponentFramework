@@ -26,6 +26,16 @@ public class ReferenceTests
     }
     #endregion
 
+    #region Nested type: Component3
+    private class Component3 : Component
+    {
+        #region Properties
+        [cpGames.core.EntityComponentFramework.Property("TestList", typeof(ListProperty<Component1>))]
+        public IListProperty<Component1> TestList { get; private set; } = null!;
+        #endregion
+    }
+    #endregion
+
     #region Methods
     [SetUp]
     public void Setup() { }
@@ -57,6 +67,33 @@ public class ReferenceTests
         outcome = component2.TestReference.IsDefault(out result);
         Assert.That(outcome);
         Assert.That(result);
+    }
+
+    [Test]
+    public void TestListDisconnect()
+    {
+        var entity1 = new Entity(Id.INVALID);
+        var entity2 = new Entity(Id.INVALID);
+
+        var outcome =
+            entity1.AddComponent<Component1>(out var component1) &&
+            component1!.TestFloat.Set(1.0f);
+        Assert.That(outcome);
+
+        outcome =
+            entity2.AddComponent<Component3>(out var component3) &&
+            component3!.TestList.AddEntry(component1!);
+
+        Assert.That(outcome);
+
+        var count = component3!.TestList.Count;
+        Assert.That(count == 1);
+
+        outcome = entity1.Dispose();
+        Assert.That(outcome);
+
+        count = component3.TestList.Count;
+        Assert.That(count == 0);
     }
     #endregion
 }
