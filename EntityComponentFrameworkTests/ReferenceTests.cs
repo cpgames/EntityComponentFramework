@@ -95,5 +95,32 @@ public class ReferenceTests
         count = component3.TestList.Count;
         Assert.That(count == 0);
     }
+
+    [Test]
+    public void TestSet()
+    {
+        var entity1 = new Entity(Id.INVALID);
+        var entity2 = new Entity(Id.INVALID);
+
+        var outcome =
+            entity1.AddComponent<Component1>(out var component1) &&
+            component1!.TestFloat.Set(1.0f);
+        Assert.That(outcome);
+
+        outcome =
+            entity2.AddComponent<Component3>(out var component3) &&
+            component3!.TestList.AddEntry(component1!);
+
+        Assert.That(outcome);
+
+        var count = component3!.TestList.Count;
+        Assert.That(count == 1);
+
+        outcome = entity1.Dispose();
+        Assert.That(outcome);
+
+        count = component3.TestList.Count;
+        Assert.That(count == 0);
+    }
     #endregion
 }

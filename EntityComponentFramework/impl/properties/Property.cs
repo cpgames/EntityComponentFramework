@@ -105,13 +105,10 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Outcome.Success();
             }
-            if (_connected)
+            var beginSetOutcome = BeginValueSetSignal.DispatchResult(value);
+            if (!beginSetOutcome)
             {
-                var beginSetOutcome = BeginValueSetSignal.DispatchResult(value);
-                if (!beginSetOutcome)
-                {
-                    return beginSetOutcome;
-                }
+                return beginSetOutcome;
             }
             var outcome =
                 Unlink(false) &&
@@ -120,13 +117,10 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return outcome;
             }
-            if (_connected)
+            var endSetOutcome = EndValueSetSignal.DispatchResult(value);
+            if (!endSetOutcome)
             {
-                var endSetOutcome = EndValueSetSignal.DispatchResult(value);
-                if (!endSetOutcome)
-                {
-                    return endSetOutcome;
-                }
+                return endSetOutcome;
             }
             return Outcome.Success();
         }

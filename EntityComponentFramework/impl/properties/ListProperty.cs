@@ -64,14 +64,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Fail($"List already contains entry {entry}");
             }
             value.Add(entry);
-            if (entry is IComponent component)
-            {
-                outcome = component.BeginDisconnectedSignal.AddCommand(OnComponentBeginDisconnected, this);
-                if (!outcome)
-                {
-                    return outcome;
-                }
-            }
             return EntryAddedSignal.DispatchResult(entry);
         }
 
@@ -87,14 +79,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Fail($"List does not contain entry {entry}");
             }
             value.Remove(entry);
-            if (entry is IComponent component)
-            {
-                outcome = component.BeginDisconnectedSignal.RemoveCommand(this);
-                if (!outcome)
-                {
-                    return outcome;
-                }
-            }
             return EntryRemovedSignal.DispatchResult(entry);
         }
 
@@ -353,15 +337,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return new List<TElementValue>();
             }
             return new List<TElementValue>(value);
-        }
-
-        private Outcome OnComponentBeginDisconnected(object? value)
-        {
-            if (value is TElementValue entry)
-            {
-                return RemoveEntry(entry);
-            }
-            return Outcome.Fail("Invalid component type");
         }
         #endregion
     }
