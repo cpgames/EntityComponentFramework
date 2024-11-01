@@ -9,6 +9,7 @@ namespace cpGames.core.EntityComponentFramework
         #region Properties
         string Name { get; }
         Entity Owner { get; }
+        int Index { get; set; }
         ISignalOutcome ValueGetSignal { get; }
         ISignalOutcome<object?> BeginValueSetSignal { get; }
         ISignalOutcome<object?> EndValueSetSignal { get; }

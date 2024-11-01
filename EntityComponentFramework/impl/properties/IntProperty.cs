@@ -71,5 +71,17 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Set(currentValue - value);
         }
         #endregion
+
+        #region Methods
+        protected override Outcome ConvertToValue(object? data, out int value)
+        {
+            if (data is long longValue)
+            {
+                value = (int)longValue;
+                return Outcome.Success();
+            }
+            return base.ConvertToValue(data, out value);
+        }
+        #endregion
     }
 }

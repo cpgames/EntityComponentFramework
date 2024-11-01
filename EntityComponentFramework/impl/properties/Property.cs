@@ -29,6 +29,8 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region IProperty<TValue> Members
         public string Name { get; }
         public Entity Owner { get; }
+        public int Index { get; set; }
+
         public ISignalOutcome ValueGetSignal { get; } = new LazySignalOutcome();
         public ISignalOutcome<object?> BeginValueSetSignal { get; } = new LazySignalOutcome<object?>();
         public ISignalOutcome<object?> EndValueSetSignal { get; } = new LazySignalOutcome<object?>();
@@ -43,7 +45,9 @@ namespace cpGames.core.EntityComponentFramework.impl
         public virtual Outcome Disconnect()
         {
             _connected = false;
-            return Outcome.Success();
+            return
+                ResetToDefault() &&
+                Outcome.Success();
         }
 
         public Outcome SetData(object? data)
@@ -245,7 +249,9 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome ResetToDefault()
         {
-            return Set(Clone(_defaultValue));
+            return
+                Unlink(false) &&
+                Set(Clone(_defaultValue));
         }
 
         public virtual string ValueToString()
