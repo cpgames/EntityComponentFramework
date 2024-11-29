@@ -466,6 +466,14 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             lock (SyncRoot)
             {
+                foreach (var property in _properties.Values)
+                {
+                    var outcome = property.Disconnect();
+                    if (!outcome)
+                    {
+                        return outcome;
+                    }
+                }
                 while (_components.Count > 0)
                 {
                     var outcome = _components[_components.Count - 1].Disconnect();
@@ -474,14 +482,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                         return outcome;
                     }
                     _components.Remove(_components[_components.Count - 1]);
-                }
-                foreach (var property in _properties.Values)
-                {
-                    var outcome = property.Disconnect();
-                    if (!outcome)
-                    {
-                        return outcome;
-                    }
                 }
             }
             return Outcome.Success();
