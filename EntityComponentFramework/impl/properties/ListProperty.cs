@@ -10,8 +10,8 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Constructors
         public ListProperty(Entity owner, string name) : base(owner, name, new List<TElementValue>())
         {
-            EntryAddedSignal.AddCommand(val =>
-                EntryObjAddedSignal.DispatchResult(val!) &&
+            EntryAddedSignal.AddCommand((val, index) =>
+                EntryObjAddedSignal.DispatchResult(val!, index) &&
                 EntryCountChangedSignal.DispatchResult());
             EntryRemovedSignal.AddCommand(val =>
                 EntryObjRemovedSignal.DispatchResult(val!) &&
@@ -23,9 +23,9 @@ namespace cpGames.core.EntityComponentFramework.impl
         public long Count => Value.Count;
         public bool Empty => Count == 0;
         public Type ElementType => typeof(TElementValue);
-        public ISignalOutcome<object> EntryObjAddedSignal { get; } = new LazySignalOutcome<object>();
+        public ISignalOutcome<object, int> EntryObjAddedSignal { get; } = new LazySignalOutcome<object, int>();
         public ISignalOutcome<object> EntryObjRemovedSignal { get; } = new LazySignalOutcome<object>();
-        public ISignalOutcome<TElementValue> EntryAddedSignal { get; } = new LazySignalOutcome<TElementValue>();
+        public ISignalOutcome<TElementValue, int> EntryAddedSignal { get; } = new LazySignalOutcome<TElementValue, int>();
         public ISignalOutcome<TElementValue> EntryRemovedSignal { get; } = new LazySignalOutcome<TElementValue>();
         public TElementValue this[int index] => Value[index];
         public ISignalOutcome EntryCountChangedSignal { get; } = new LazySignalOutcome();
@@ -52,6 +52,64 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}");
         }
 
+        public Outcome GetIndexOf(object entryObj, out int index)
+        {
+            index = -1;
+            if (entryObj is not TElementValue entry)
+            {
+                return Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}");
+            }
+            var outcome = Get(out var value);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            index = value!.IndexOf(entry);
+            return Outcome.Success();
+        }
+
+        public Outcome RemoveEntryAtIndex(int index)
+        {
+            var outcome = Get(out var value);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (index < 0 || index >= value!.Count)
+            {
+                return Outcome.Fail($"Index {index} is out of range [0, {value.Count - 1}]");
+            }
+            var entry = value[index];
+            value.RemoveAt(index);
+            return EntryRemovedSignal.DispatchResult(entry);
+        }
+
+        public Outcome InsertEntryObj(object entryObj, int index)
+        {
+            return entryObj is TElementValue entry ?
+                InsertEntry(entry, index) :
+                Outcome.Fail($"Entry object {entryObj} is not of type {typeof(TElementValue)}");
+        }
+
+        public Outcome InsertEntry(TElementValue entry, int index)
+        {
+            var outcome = Get(out var value);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (index < 0 || index > value!.Count)
+            {
+                return Outcome.Fail($"Index {index} is out of range [0, {value.Count}]");
+            }
+            if (value.Contains(entry))
+            {
+                return Outcome.Fail($"List already contains entry {entry}");
+            }
+            value.Insert(index, entry);
+            return EntryAddedSignal.DispatchResult(entry, index);
+        }
+
         public Outcome AddEntry(TElementValue entry)
         {
             var outcome = Get(out var value);
@@ -64,7 +122,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Fail($"List already contains entry {entry}");
             }
             value.Add(entry);
-            return EntryAddedSignal.DispatchResult(entry);
+            return EntryAddedSignal.DispatchResult(entry, value.Count - 1);
         }
 
         public Outcome RemoveEntry(TElementValue entry)
@@ -316,7 +374,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             var listProperty = (IListProperty)otherProperty;
             return
-                listProperty.EntryObjAddedSignal.AddCommand(AddEntryObj, this) &&
+                listProperty.EntryObjAddedSignal.AddCommand(InsertEntryObj, this) &&
                 listProperty.EntryObjRemovedSignal.AddCommand(RemoveEntryObj, this) &&
                 base.LinkInternal(otherProperty);
         }

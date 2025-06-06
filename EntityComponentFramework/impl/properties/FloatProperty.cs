@@ -71,6 +71,21 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Set(currentValue - value);
             return outcome;
         }
+
+        public Outcome Min(float value)
+        {
+            var outcome =
+                Get(out var currentValue) &&
+                Set(Math.Min(currentValue, value));
+            return outcome;
+        }
+        public Outcome Max(float value)
+        {
+            var outcome =
+                Get(out var currentValue) &&
+                Set(Math.Max(currentValue, value));
+            return outcome;
+        }
         #endregion
 
         #region Methods

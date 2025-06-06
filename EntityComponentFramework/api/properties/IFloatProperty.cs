@@ -5,6 +5,8 @@
         #region Methods
         Outcome Add(float value);
         Outcome Subtract(float value);
+        Outcome Min(float value);
+        Outcome Max(float value);
         #endregion
     }
 }

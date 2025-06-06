@@ -92,14 +92,14 @@ public class ListTests
 
         BaseEntry? newBaseEntry = null;
         baseList.EntryAddedSignal.AddCommand(
-            val =>
+            (val, index) =>
             {
                 newBaseEntry = val;
                 return Outcome.Success();
             });
         object? objEntry = null;
         baseList.EntryObjAddedSignal.AddCommand(
-            val =>
+            (val, index) =>
             {
                 objEntry = val;
                 return Outcome.Success();

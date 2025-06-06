@@ -11,7 +11,7 @@ namespace cpGames.core.EntityComponentFramework
         long Count { get; }
         bool Empty { get; }
         Type ElementType { get; }
-        ISignalOutcome<object> EntryObjAddedSignal { get; }
+        ISignalOutcome<object, int> EntryObjAddedSignal { get; }
         ISignalOutcome<object> EntryObjRemovedSignal { get; }
         ISignalOutcome EntryCountChangedSignal { get; }
         #endregion
@@ -20,6 +20,9 @@ namespace cpGames.core.EntityComponentFramework
         Outcome AddEntryObj(object entryObj);
         Outcome RemoveEntryObj(object entryObj);
         Outcome HasEntryObj(object entryObj, out bool result);
+        Outcome GetIndexOf(object entryObj, out int index);
+        Outcome RemoveEntryAtIndex(int index);
+        Outcome InsertEntryObj(object entryObj, int index);
         #endregion
     }
 
@@ -30,7 +33,7 @@ namespace cpGames.core.EntityComponentFramework
         #endregion
 
         #region Properties
-        ISignalOutcome<TElementValue> EntryAddedSignal { get; }
+        ISignalOutcome<TElementValue, int> EntryAddedSignal { get; }
         ISignalOutcome<TElementValue> EntryRemovedSignal { get; }
         TElementValue this[int index] { get; }
         #endregion
@@ -45,6 +48,7 @@ namespace cpGames.core.EntityComponentFramework
         Outcome TryFindEntry(FilterDelegate? filter, out TElementValue? entry);
         Outcome FindEntries(FilterDelegate filter, out List<TElementValue> entries);
         Outcome Clear();
+        Outcome InsertEntry(TElementValue entry, int index);
         #endregion
     }
 }
