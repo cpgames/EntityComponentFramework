@@ -77,7 +77,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (index < 0 || index >= value!.Count)
             {
-                return Outcome.Fail($"Index {index} is out of range [0, {value.Count - 1}]");
+                return Outcome.Fail($"Index {index} is out of range [0, {value!.Count - 1}]");
             }
             var entry = value[index];
             value.RemoveAt(index);
@@ -100,7 +100,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (index < 0 || index > value!.Count)
             {
-                return Outcome.Fail($"Index {index} is out of range [0, {value.Count}]");
+                return Outcome.Fail($"Index {index} is out of range [0, {value!.Count}]");
             }
             if (value.Contains(entry))
             {
