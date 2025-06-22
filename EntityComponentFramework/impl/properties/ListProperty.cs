@@ -29,6 +29,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         public ISignalOutcome<TElementValue> EntryRemovedSignal { get; } = new LazySignalOutcome<TElementValue>();
         public TElementValue this[int index] => Value[index];
         public ISignalOutcome EntryCountChangedSignal { get; } = new LazySignalOutcome();
+        public bool AllowDuplicates { get; set; } = false;
 
         public Outcome AddEntryObj(object entryObj)
         {
@@ -102,7 +103,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Outcome.Fail($"Index {index} is out of range [0, {value!.Count}]");
             }
-            if (value.Contains(entry))
+            if (!AllowDuplicates && value.Contains(entry))
             {
                 return Outcome.Fail($"List already contains entry {entry}");
             }
@@ -117,7 +118,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return outcome;
             }
-            if (value!.Contains(entry))
+            if (!AllowDuplicates && value!.Contains(entry))
             {
                 return Outcome.Fail($"List already contains entry {entry}");
             }

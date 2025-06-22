@@ -14,6 +14,7 @@ namespace cpGames.core.EntityComponentFramework
         ISignalOutcome<object, int> EntryObjAddedSignal { get; }
         ISignalOutcome<object> EntryObjRemovedSignal { get; }
         ISignalOutcome EntryCountChangedSignal { get; }
+        bool AllowDuplicates { get; set; }
         #endregion
 
         #region Methods
@@ -36,6 +37,7 @@ namespace cpGames.core.EntityComponentFramework
         ISignalOutcome<TElementValue, int> EntryAddedSignal { get; }
         ISignalOutcome<TElementValue> EntryRemovedSignal { get; }
         TElementValue this[int index] { get; }
+        bool AllowDuplicates { get; set; }
         #endregion
 
         #region Methods
