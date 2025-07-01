@@ -28,15 +28,15 @@ public class LinkTests
         addOutcome = entity.AddProperty("f2", out IntProperty? i1);
         Assert.Multiple(() =>
         {
-            Assert.That(addOutcome, Is.False);
-            Assert.That(f2, Is.Null);
+            Assert.That(addOutcome.IsSuccess, Is.False);
+            Assert.That(i1, Is.Null);
         });
 
         var linkOutcome = f2!.Link(f1!);
         Assert.Multiple(() =>
         {
             Assert.That(linkOutcome, linkOutcome.ErrorMessage);
-            Assert.That((bool)f2.IsLinked(), Is.True);
+            Assert.That(f2.IsLinked(), Is.True);
         });
         var additionOutcome = f1!.Add(1);
         Assert.Multiple(() =>
@@ -44,7 +44,7 @@ public class LinkTests
             Assert.That(additionOutcome, additionOutcome.ErrorMessage);
             Assert.That(f1!.Value, Is.EqualTo(1));
             Assert.That(f2!.Value, Is.EqualTo(1));
-            Assert.That((bool)f2.IsLinked(), Is.True);
+            Assert.That(f2.IsLinked(), Is.True);
         });
         var subtractionOutcome = f2!.Subtract(1);
         Assert.Multiple(() =>
@@ -52,7 +52,7 @@ public class LinkTests
             Assert.That(subtractionOutcome, subtractionOutcome.ErrorMessage);
             Assert.That(f1!.Value, Is.EqualTo(1));
             Assert.That(f2!.Value, Is.EqualTo(0));
-            Assert.That((bool)f2.IsLinked(), Is.False);
+            Assert.That(f2.IsLinked(), Is.False);
         });
     }
     #endregion

@@ -1,10 +1,9 @@
 ﻿using System;
-using cpGames.core.RapidIoC;
 using Newtonsoft.Json;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class ReferencePropertyConverter : JsonConverter
+    public class ReferencePropertyJsonConverter : JsonConverter
     {
         #region Methods
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
@@ -48,16 +47,19 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
     }
 
-    [JsonConverter(typeof(ReferencePropertyConverter))]
+    [JsonConverter(typeof(ReferencePropertyJsonConverter))]
     public class ReferenceProperty<TComponent> : Property<TComponent?>, IReferenceProperty<TComponent>
         where TComponent : class, IComponent
     {
         #region Fields
-        private IReferenceResolver? _referenceResolver;
+        private readonly ReferenceConverter<TComponent?> _referenceConverter = new();
         #endregion
 
         #region Constructors
-        public ReferenceProperty(Entity owner, string name) : base(owner, name, null) { }
+        public ReferenceProperty(Entity owner, string name) : base(owner, name, null)
+        {
+            _converters.Add(_referenceConverter);
+        }
         #endregion
 
         #region IReferenceProperty<TComponent> Members
@@ -93,68 +95,17 @@ namespace cpGames.core.EntityComponentFramework.impl
                 derivedComponent = null;
                 return getBaseComponent;
             }
-            if (baseComponent is not TDerivedComponent)
+            if (baseComponent is not TDerivedComponent value)
             {
                 derivedComponent = null;
                 return Outcome.Fail($"Component {baseComponent!.GetType()} is not of type {typeof(TDerivedComponent)}");
             }
-            derivedComponent = (TDerivedComponent)baseComponent;
+            derivedComponent = value;
             return Outcome.Success();
         }
         #endregion
 
         #region Methods
-        protected override Outcome ConvertToValue(object? data, out TComponent? value)
-        {
-            if (data is byte[] bytes)
-            {
-                var address = new Address(bytes);
-                return GetValueFromAddress(address, out value);
-            }
-            if (data is string str)
-            {
-                var address = new Address(str);
-                return GetValueFromAddress(address, out value);
-            }
-            if (data is Address)
-            {
-                var address = (Address)data;
-                return GetValueFromAddress(address, out value);
-            }
-            return base.ConvertToValue(data, out value);
-        }
-
-        private Outcome GetReferenceResolver()
-        {
-            return
-                _referenceResolver != null ?
-                    Outcome.Success() :
-                    Rapid.GetBindingValue(Rapid.RootKey, out _referenceResolver);
-        }
-
-        private Outcome GetValueFromAddress(Address address, out TComponent? value)
-        {
-            value = null;
-            if (address == Address.INVALID)
-            {
-                return Outcome.Success();
-            }
-            IComponent? component = default;
-            var getEntityOutcome =
-                GetReferenceResolver() &&
-                _referenceResolver!.ResolveReference(address, out component);
-            if (!getEntityOutcome)
-            {
-                return getEntityOutcome;
-            }
-            if (component is not TComponent)
-            {
-                return Outcome.Fail($"Component {component!.GetType()} is not of type {typeof(TComponent)}");
-            }
-            value = (TComponent)component;
-            return Outcome.Success();
-        }
-
         protected override Outcome ConvertToData(TComponent? value, out object? data)
         {
             if (value == null)
@@ -162,10 +113,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 data = Address.INVALID;
                 return Outcome.Success();
             }
-            var address = Address.INVALID;
-            var getAddressOutcome =
-                GetReferenceResolver() &&
-                _referenceResolver!.ConvertReferenceToAddress(value, out address);
+            var getAddressOutcome = _referenceConverter.ConvertReferenceToAddress(value, out var address);
             if (!getAddressOutcome)
             {
                 data = Address.INVALID;

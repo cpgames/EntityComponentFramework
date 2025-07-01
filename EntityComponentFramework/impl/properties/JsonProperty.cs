@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -86,7 +85,11 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Constructors
-        protected JsonProperty(Entity owner, string name, TValue? defaultValue) : base(owner, name, defaultValue) { }
+        protected JsonProperty(Entity owner, string name, TValue? defaultValue) : base(owner, name, defaultValue)
+        {
+            _converters.Add(new StringToJsonConverter<TValue>());
+            _converters.Add(new BytesToJsonConverter<TValue>());
+        }
         #endregion
 
         #region IJsonProperty<TValue> Members
@@ -133,55 +136,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
-        protected override Outcome ConvertToValue(object? data, out TValue? value)
-        {
-            if (data is string strData)
-            {
-                if (string.IsNullOrEmpty(strData))
-                {
-                    value = default;
-                    return Outcome.Success();
-                }
-                try
-                {
-                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TValue))!;
-                    value = (TValue)valueObj;
-                }
-                catch (Exception e)
-                {
-                    value = default;
-                    return Outcome.Fail(e.Message);
-                }
-                return Outcome.Success();
-            }
-            if (data is byte[] bytes)
-            {
-                if (bytes.Length == 0)
-                {
-                    value = default;
-                    return Outcome.Success();
-                }
-                try
-                {
-                    strData = Encoding.UTF8.GetString(bytes);
-                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TValue))!;
-                    value = (TValue)valueObj;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-                return Outcome.Success();
-            }
-            if (data is TValue newValue)
-            {
-                value = Clone(newValue);
-                return Outcome.Success();
-            }
-            return base.ConvertToValue(data, out value);
-        }
-
         protected override Outcome ConvertToData(TValue? value, out object? data)
         {
             if (string.IsNullOrEmpty(_jsonString) && value != null)

@@ -53,7 +53,10 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class IntProperty : Property<int>, IIntProperty
     {
         #region Constructors
-        public IntProperty(Entity owner, string name) : base(owner, name, 0) { }
+        public IntProperty(Entity owner, string name) : base(owner, name, 0) 
+        {
+            _converters.Add(new LongToIntConverter());
+        }
         #endregion
 
         #region IIntProperty Members
@@ -69,18 +72,6 @@ namespace cpGames.core.EntityComponentFramework.impl
             return
                 Get(out var currentValue) &&
                 Set(currentValue - value);
-        }
-        #endregion
-
-        #region Methods
-        protected override Outcome ConvertToValue(object? data, out int value)
-        {
-            if (data is long longValue)
-            {
-                value = (int)longValue;
-                return Outcome.Success();
-            }
-            return base.ConvertToValue(data, out value);
         }
         #endregion
     }

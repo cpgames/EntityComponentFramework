@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
@@ -10,6 +11,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         private bool _connected;
         private IProperty? _linkedProperty;
         private TValue? _defaultValue;
+        protected readonly List<IPropertyConverter<TValue>> _converters = new();
         protected TValue? _value;
         #endregion
 
@@ -309,9 +311,20 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
+        public Outcome AddConverter(IPropertyConverter<TValue> converter)
+        {
+            if (_converters.Any(x => x.GetType() == converter.GetType()))
+            {
+                return Outcome.Fail($"Converter of type <{converter.GetType().Name}> already exists for property <{Owner}:{Name}>.");
+            }
+            _converters.Add(converter);
+            return Outcome.Success();
+        }
+
         public Outcome UpdateValue()
         {
             return
+                Unlink(false) &&
                 BeginValueSetSignal.DispatchResult(_value) &&
                 UpdateValue(_value) &&
                 EndValueSetSignal.DispatchResult(_value);
@@ -336,20 +349,22 @@ namespace cpGames.core.EntityComponentFramework.impl
                 EndValueSetSignal.DispatchResult(value);
         }
 
-        protected virtual Outcome CanLink(IProperty otherProperty)
+        protected Outcome CanLink(IProperty otherProperty)
         {
-            if (otherProperty.ValueType != ValueType)
+            if (otherProperty.ValueType == ValueType ||
+                _converters.Any(converter => converter.CanConvert(otherProperty.ValueType)))
             {
-                return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
+                return Outcome.Success();
             }
-            return Outcome.Success();
+
+            return Outcome.Fail($"Unsupported link between properties of different types: <{ValueType}> and <{otherProperty.ValueType}>.");
         }
 
         protected virtual Outcome LinkInternal(IProperty otherProperty)
         {
             _linkedProperty = otherProperty;
             return
-                _linkedProperty.GetData(out var linkedValue) &&
+                _linkedProperty.GetValueObj(out var linkedValue) &&
                 OnLinkedEndModify(linkedValue) &&
                 otherProperty.EndValueSetSignal.AddCommand(OnLinkedEndModify, this);
         }
@@ -365,17 +380,27 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        protected virtual Outcome ConvertToValue(object? data, out TValue? value)
+        protected Outcome ConvertToValue(object? data, out TValue? value)
         {
             if (data == null)
             {
-                value = default;
+                value = Clone(_defaultValue);
                 return Outcome.Success();
             }
             if (data is TValue newValue)
             {
-                value = newValue;
+                value = Clone(newValue);
                 return Outcome.Success();
+            }
+            var converter = _converters.FirstOrDefault(x => x.CanConvert(data.GetType()));
+            if (converter != null)
+            {
+                var outcome = converter.Convert(data, out value);
+                if (outcome)
+                {
+                    return Outcome.Success();
+                }
+                return outcome;
             }
             value = default;
             return Outcome.Fail($"<{Owner}:{Name}> Failed to convert <{data.GetType().Name}> to <{typeof(TValue).Name}>.");

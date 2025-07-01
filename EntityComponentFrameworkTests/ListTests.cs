@@ -35,16 +35,30 @@ public class ListTests
         Assert.That(addOutcome, addOutcome.ErrorMessage);
         var addOutcome2 = entity.AddProperty<ListProperty<int>>("list2", out var list2);
         Assert.That(addOutcome2, addOutcome2.ErrorMessage);
-        var linkOutcome = list2!.Link(list1!);
-        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
+
         // add value to list1 and verify it is in list2
         var addValueOutcome = list1!.AddEntry(1);
         Assert.That(addValueOutcome, addValueOutcome.ErrorMessage);
+
+        var linkOutcome = list2!.Link(list1);
+        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
+
         Assert.That(list2.Contains(1), Is.True);
+
+        // add another value to list1 and verify it is in list2
+        addValueOutcome = list1.AddEntry(2);
+        Assert.That(addValueOutcome, addValueOutcome.ErrorMessage);
+        Assert.That(list2.Contains(2), Is.True);
+
         // remove value from list1 and verify it is not in list2
         var removeValueOutcome = list1.RemoveEntry(1);
         Assert.That(removeValueOutcome, removeValueOutcome.ErrorMessage);
         Assert.That(list2.Contains(1), Is.False);
+
+        // add value to list2 and verify it is not in list1
+        addValueOutcome = list2.AddEntry(3);
+        Assert.That(addValueOutcome, addValueOutcome.ErrorMessage);
+        Assert.That(list1.Contains(3), Is.False);
     }
 
     [Test]
@@ -91,19 +105,17 @@ public class ListTests
         });
 
         BaseEntry? newBaseEntry = null;
-        baseList.EntryAddedSignal.AddCommand(
-            (val, index) =>
-            {
-                newBaseEntry = val;
-                return Outcome.Success();
-            });
+        baseList.EntryAddedSignal.AddCommand((val, index) =>
+        {
+            newBaseEntry = val;
+            return Outcome.Success();
+        });
         object? objEntry = null;
-        baseList.EntryObjAddedSignal.AddCommand(
-            (val, index) =>
-            {
-                objEntry = val;
-                return Outcome.Success();
-            });
+        baseList.EntryObjAddedSignal.AddCommand((val, index) =>
+        {
+            objEntry = val;
+            return Outcome.Success();
+        });
         var addOutcome = derivedList.AddEntry(new DerivedEntry { i = 4, a = "d" });
         Assert.That(addOutcome, addOutcome.ErrorMessage);
         Assert.Multiple(() =>

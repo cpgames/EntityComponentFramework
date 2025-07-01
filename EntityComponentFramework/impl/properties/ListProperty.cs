@@ -7,9 +7,14 @@ namespace cpGames.core.EntityComponentFramework.impl
 {
     public class ListProperty<TElementValue> : Property<List<TElementValue>>, IListProperty<TElementValue>
     {
+        #region Fields
+        private readonly ListConverter<TElementValue> _listConverter = new();
+        #endregion
+
         #region Constructors
         public ListProperty(Entity owner, string name) : base(owner, name, new List<TElementValue>())
         {
+            _converters.Add(_listConverter);
             EntryAddedSignal.AddCommand((val, index) =>
                 EntryObjAddedSignal.DispatchResult(val!, index) &&
                 EntryCountChangedSignal.DispatchResult());
@@ -122,7 +127,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return Outcome.Fail($"List already contains entry {entry}");
             }
-            value.Add(entry);
+            value!.Add(entry);
             return EntryAddedSignal.DispatchResult(entry, value.Count - 1);
         }
 
@@ -327,50 +332,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
-        protected virtual Outcome ConvertEntry(object? data, out TElementValue? value)
-        {
-            if (data is TElementValue entry)
-            {
-                value = entry;
-                return Outcome.Success();
-            }
-            value = default;
-            return Outcome.Fail($"Cannot convert entry {data} to {typeof(TElementValue)}");
-        }
-
-        protected override Outcome ConvertToValue(object? data, out List<TElementValue>? value)
-        {
-            if (data is IList list)
-            {
-                value = new List<TElementValue>();
-                foreach (var entry in list)
-                {
-                    var convertOutcome = ConvertEntry(entry, out var entryValue);
-                    if (!convertOutcome)
-                    {
-                        value = default;
-                        return convertOutcome;
-                    }
-                    value.Add(entryValue!);
-                }
-                return Outcome.Success();
-            }
-            return base.ConvertToValue(data, out value);
-        }
-
-        protected override Outcome CanLink(IProperty otherProperty)
-        {
-            if (otherProperty is IListProperty otherListProperty)
-            {
-                if (!ElementType.IsAssignableFrom(otherListProperty.ElementType))
-                {
-                    return Outcome.Fail($"Cannot link list property {Name} to {otherProperty.Name} because entry types are not covariant");
-                }
-                return Outcome.Success();
-            }
-            return base.CanLink(otherProperty);
-        }
-
         protected override Outcome LinkInternal(IProperty otherProperty)
         {
             var listProperty = (IListProperty)otherProperty;

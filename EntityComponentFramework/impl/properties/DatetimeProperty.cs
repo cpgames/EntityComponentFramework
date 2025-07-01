@@ -6,8 +6,10 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class DateTimeProperty : Property<DateTime>, IDateTimeProperty
     {
         #region Constructors
-        public DateTimeProperty(Entity owner, string name) : this(owner, name, default) { }
-        public DateTimeProperty(Entity owner, string name, DateTime defaultValue) : base(owner, name, defaultValue) { }
+        public DateTimeProperty(Entity owner, string name) : base(owner, name, default) 
+        {
+            _converters.Add(new StringToDateTimeConverter());
+        }
         #endregion
 
         #region IDateTimeProperty Members
@@ -23,28 +25,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
-        protected override Outcome ConvertToValue(object? data, out DateTime value)
-        {
-            if (data == null)
-            {
-                value = default;
-                return Outcome.Success();
-            }
-            if (data is DateTime dateTime)
-            {
-                value = dateTime;
-            }
-            else if (!DateTime.TryParse(
-                         (string)data,
-                         CultureInfo.InvariantCulture,
-                         DateTimeStyles.None,
-                         out value))
-            {
-                return Outcome.Fail($"Failed to convert {(string)data} to DateTime.");
-            }
-            return Outcome.Success();
-        }
-
         protected override Outcome ConvertToData(DateTime value, out object? data)
         {
             data = value.ToString("yyyy-MM-dd HH:mm:ss");

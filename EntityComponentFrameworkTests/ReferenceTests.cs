@@ -89,7 +89,7 @@ public class ReferenceTests
         var count = component3!.TestList.Count;
         Assert.That(count == 1);
 
-        outcome = entity1.Dispose();
+        outcome = entity1.Dispose() && entity2.Dispose();
         Assert.That(outcome);
 
         count = component3.TestList.Count;

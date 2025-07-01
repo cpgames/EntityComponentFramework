@@ -52,7 +52,12 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class FloatProperty : Property<float>, IFloatProperty
     {
         #region Constructors
-        public FloatProperty(Entity owner, string name) : base(owner, name, 0f) { }
+        public FloatProperty(Entity owner, string name) : base(owner, name, 0f) 
+        {
+            _converters.Add(new DoubleToFloatConverter());
+            _converters.Add(new IntToFloatConverter());
+            _converters.Add(new LongToFloatConverter());
+        }
         #endregion
 
         #region IFloatProperty Members
@@ -85,18 +90,6 @@ namespace cpGames.core.EntityComponentFramework.impl
                 Get(out var currentValue) &&
                 Set(Math.Max(currentValue, value));
             return outcome;
-        }
-        #endregion
-
-        #region Methods
-        protected override Outcome ConvertToValue(object? data, out float value)
-        {
-            if (data is double d)
-            {
-                value = (float)d;
-                return Outcome.Success();
-            }
-            return base.ConvertToValue(data, out value);
         }
         #endregion
     }
