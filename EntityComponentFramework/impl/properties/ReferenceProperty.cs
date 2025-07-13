@@ -9,12 +9,12 @@ namespace cpGames.core.EntityComponentFramework.impl
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             if (value == null ||
-                !((IProperty)value).GetData(out var str))
+                !((IProperty)value).GetData(out var data))
             {
                 writer.WriteNull();
                 return;
             }
-            writer.WriteValue(str);
+            writer.WriteValue(data!.ToString());
         }
 
         public override object ReadJson(
@@ -42,7 +42,9 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType.IsAssignableFrom(typeof(StringProperty));
+            return
+                objectType.IsGenericType &&
+                objectType.GetGenericTypeDefinition() == typeof(IReferenceProperty<>);
         }
         #endregion
     }
