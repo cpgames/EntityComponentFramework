@@ -300,7 +300,11 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return outcome;
             }
-            while (value!.Count > 0)
+            if (value == null || value.Count == 0)
+            {
+                return Outcome.Success();
+            }
+            while (value.Count > 0)
             {
                 outcome = RemoveEntry(value[0]);
                 if (!outcome)
@@ -332,6 +336,30 @@ namespace cpGames.core.EntityComponentFramework.impl
         #endregion
 
         #region Methods
+        protected override Outcome UpdateValue(List<TElementValue>? value)
+        {
+            var outcome = Clear();
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (value == null)
+            {
+                return base.UpdateValue(value);
+            }
+
+            _value ??= new List<TElementValue>();
+            foreach (var element in value)
+            {
+                outcome = AddEntry(element);
+                if (!outcome)
+                {
+                    return outcome;
+                }
+            }
+            return Outcome.Success();
+        }
+
         protected override Outcome LinkInternal(IProperty otherProperty)
         {
             var listProperty = (IListProperty)otherProperty;
