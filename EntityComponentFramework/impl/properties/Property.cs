@@ -196,7 +196,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 result = _value == null;
                 return Outcome.Success();
             }
-            result = value.Equals(_value);
+            result = ValueComparer.Equals(value, _value);
             return Outcome.Success();
         }
 
