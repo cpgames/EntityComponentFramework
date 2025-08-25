@@ -10,7 +10,7 @@ namespace cpGames.core.EntityComponentFramework.impl
     public abstract class Component : View, IComponent
     {
         #region Fields
-        private readonly List<IProperty> _properties = new();
+        protected readonly List<IProperty> _properties = new();
         #endregion
 
         #region IComponent Members

@@ -56,6 +56,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             _converters.Add(new IntToBoolConverter());
             _converters.Add(new LongToBoolConverter());
+            _converters.Add(new ByteToBoolConverter());
         }
         #endregion
 
