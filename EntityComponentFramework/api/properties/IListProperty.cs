@@ -37,7 +37,6 @@ namespace cpGames.core.EntityComponentFramework
         ISignalOutcome<TElementValue, int> EntryAddedSignal { get; }
         ISignalOutcome<TElementValue> EntryRemovedSignal { get; }
         TElementValue this[int index] { get; }
-        bool AllowDuplicates { get; set; }
         #endregion
 
         #region Methods

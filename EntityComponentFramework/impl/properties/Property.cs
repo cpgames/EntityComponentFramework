@@ -8,7 +8,6 @@ namespace cpGames.core.EntityComponentFramework.impl
     public abstract class Property<TValue> : IProperty<TValue>
     {
         #region Fields
-        private bool _connected;
         private IProperty? _linkedProperty;
         private TValue? _defaultValue;
         protected readonly List<IPropertyConverter<TValue>> _converters = new();
@@ -40,13 +39,11 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public virtual Outcome Connect()
         {
-            _connected = true;
             return ResetToDefault();
         }
 
         public virtual Outcome Disconnect()
         {
-            _connected = false;
             return
                 ResetToDefault() &&
                 Outcome.Success();
