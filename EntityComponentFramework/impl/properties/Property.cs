@@ -33,7 +33,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         public Entity Owner { get; }
         public int Index { get; set; }
 
-        public ISignalOutcome ValueGetSignal { get; } = new LazySignalOutcome();
+        public ISignalOutcome ValueGetSignal { get; } = new LazySignalOutcome { IgnoreRecursiveDispatch = true };
         public ISignalOutcome<object?> BeginValueSetSignal { get; } = new LazySignalOutcome<object?>();
         public ISignalOutcome<object?> EndValueSetSignal { get; } = new LazySignalOutcome<object?>();
         public Type ValueType => typeof(TValue);
@@ -107,7 +107,12 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         public Outcome Set(TValue? value)
         {
-            if (ValueComparer.Equals(_value, value))
+            var outcome = Get(out var currentValue);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (ValueComparer.Equals(currentValue, value))
             {
                 return Outcome.Success();
             }
@@ -116,7 +121,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 return beginSetOutcome;
             }
-            var outcome =
+            outcome =
                 Unlink(false) &&
                 UpdateValue(value);
             if (!outcome)

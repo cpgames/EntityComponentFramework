@@ -155,7 +155,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             try
             {
-                _jsonString = JsonConvert.SerializeObject(value, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
+                _jsonString = JsonConvert.SerializeObject(value);
             }
             catch (Exception e)
             {
