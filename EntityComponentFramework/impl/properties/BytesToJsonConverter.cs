@@ -25,6 +25,10 @@ namespace cpGames.core.EntityComponentFramework.impl
                 try
                 {
                     var strData = Encoding.UTF8.GetString(bytes);
+                    if (strData.Length > 0 && strData[0] == '\uFEFF')
+                    {
+                        strData = strData.Substring(1);
+                    }
                     var valueObj = JsonConvert.DeserializeObject(strData, typeof(TValue))!;
                     value = (TValue)valueObj;
                 }
