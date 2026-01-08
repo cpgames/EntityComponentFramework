@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 
 namespace cpGames.core.EntityComponentFramework.impl

@@ -1,4 +1,4 @@
-﻿using cpGames.core;
+using cpGames.core;
 using cpGames.core.EntityComponentFramework.impl;
 
 namespace EntityComponentFrameworkTests;

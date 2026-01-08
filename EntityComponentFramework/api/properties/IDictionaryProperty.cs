@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework

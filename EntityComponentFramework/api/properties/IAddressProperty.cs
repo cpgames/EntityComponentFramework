@@ -1,4 +1,4 @@
-﻿namespace cpGames.core.EntityComponentFramework
+namespace cpGames.core.EntityComponentFramework
 {
     public interface IAddressProperty : IProperty<Address> { }
 }

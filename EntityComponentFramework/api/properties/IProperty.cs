@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using cpGames.core.EntityComponentFramework.impl;
 using cpGames.core.RapidIoC;
 
