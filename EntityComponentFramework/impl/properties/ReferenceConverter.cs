@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class ReferenceConverter<TComponent> : IPropertyConverter<TComponent>
-        where TComponent : class?, IComponent?
+    public class ReferenceConverter<TComponent> : IPropertyConverter<TComponent?>
+        where TComponent : class, IComponent
     {
         #region Fields
         private IReferenceResolver? _referenceResolver;
         #endregion
 
-        #region IPropertyConverter<TComponent> Members
+        #region IPropertyConverter<TComponent?> Members
         public bool CanConvert(Type type)
         {
             return type == typeof(byte[]) ||
                    type == typeof(string) ||
-                   type == typeof(Address);
+                   type == typeof(Id);
         }
 
         public Outcome Convert(object? data, out TComponent? value)
@@ -24,18 +24,15 @@ namespace cpGames.core.EntityComponentFramework.impl
 
             if (data is byte[] bytes)
             {
-                var address = new Address(bytes);
-                return GetValueFromAddress(address, out value);
+                return GetValueFromId(new Id(bytes), out value);
             }
             if (data is string str)
             {
-                var address = new Address(str);
-                return GetValueFromAddress(address, out value);
+                return GetValueFromId(new Id(str), out value);
             }
-            if (data is Address)
+            if (data is Id id)
             {
-                var address = (Address)data;
-                return GetValueFromAddress(address, out value);
+                return GetValueFromId(id, out value);
             }
 
             return Outcome.Fail($"Cannot convert {data?.GetType().Name} to {typeof(TComponent).Name}");
@@ -51,41 +48,24 @@ namespace cpGames.core.EntityComponentFramework.impl
                     Rapid.GetBindingValue(Rapid.RootKey, out _referenceResolver);
         }
 
-        private Outcome GetValueFromAddress(Address address, out TComponent? value)
+        private Outcome GetValueFromId(Id id, out TComponent? value)
         {
             value = null;
-            if (address == Address.INVALID)
+            if (!id.IsValid)
             {
                 return Outcome.Success();
             }
-            IComponent? component = default;
-            var getEntityOutcome =
+            return
                 GetReferenceResolver() &&
-                _referenceResolver!.ResolveReference(address, out component);
-            if (!getEntityOutcome)
-            {
-                return getEntityOutcome;
-            }
-            if (component is not TComponent)
-            {
-                return Outcome.Fail($"Component {component!.GetType()} is not of type {typeof(TComponent)}");
-            }
-            value = (TComponent)component;
-            return Outcome.Success();
+                _referenceResolver!.ResolveReference(id, out value);
         }
 
-        public Outcome ConvertReferenceToAddress(IComponent component, out Address address)
+        public Outcome ConvertReferenceToId(IComponent component, out Id id)
         {
-            address = Address.INVALID;
-            var outcome =
+            id = Id.INVALID;
+            return
                 GetReferenceResolver() &&
-                _referenceResolver!.ConvertReferenceToAddress(component, out address);
-            if (!outcome)
-            {
-                address = Address.INVALID;
-                return outcome;
-            }
-            return Outcome.Success();
+                _referenceResolver!.ConvertReferenceToId(component, out id);
         }
         #endregion
     }

@@ -368,6 +368,19 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
+        public Outcome RemoveComponent(Type componentType)
+        {
+            lock (SyncRoot)
+            {
+                var component = _components.FirstOrDefault(x => x.GetType() == componentType);
+                if (component == null)
+                {
+                    return Outcome.Fail($"Component of type <{componentType}> does not exist in <{this}>.");
+                }
+                return RemoveComponent(component);
+            }
+        }
+
         public Outcome RemoveComponent<TComponent>() where TComponent : IComponent
         {
             lock (SyncRoot)

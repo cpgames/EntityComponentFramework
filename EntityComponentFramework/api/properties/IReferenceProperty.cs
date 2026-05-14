@@ -3,8 +3,10 @@
     public interface IReferenceResolver : IComponent
     {
         #region Methods
-        Outcome ResolveReference(Address address, out IComponent? component);
-        Outcome ConvertReferenceToAddress(IComponent component, out Address address);
+        Outcome ResolveReference<TComponent>(Id id, out TComponent? component)
+            where TComponent : class, IComponent;
+
+        Outcome ConvertReferenceToId(IComponent component, out Id id);
         #endregion
     }
 

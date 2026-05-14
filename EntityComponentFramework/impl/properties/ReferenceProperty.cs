@@ -29,13 +29,13 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
             if (reader.Value == null)
             {
-                property.SetData(Address.INVALID);
+                property.SetData(Id.INVALID);
                 return existingValue;
             }
-            var setOutcome = property.SetData((string)reader.Value);
-            if (!setOutcome)
+            var outcome = property.SetData((string)reader.Value);
+            if (!outcome)
             {
-                throw new Exception(setOutcome.ErrorMessage);
+                throw new Exception(outcome.ErrorMessage);
             }
             return existingValue;
         }
@@ -54,7 +54,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         where TComponent : class, IComponent
     {
         #region Fields
-        private readonly ReferenceConverter<TComponent?> _referenceConverter = new();
+        private readonly ReferenceConverter<TComponent> _referenceConverter = new();
         #endregion
 
         #region Constructors
@@ -112,16 +112,16 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             if (value == null)
             {
-                data = Address.INVALID;
+                data = Id.INVALID;
                 return Outcome.Success();
             }
-            var getAddressOutcome = _referenceConverter.ConvertReferenceToAddress(value, out var address);
-            if (!getAddressOutcome)
+            var outcome = _referenceConverter.ConvertReferenceToId(value, out var id);
+            if (!outcome)
             {
-                data = Address.INVALID;
-                return getAddressOutcome;
+                data = Id.INVALID;
+                return outcome;
             }
-            data = address;
+            data = id;
             return Outcome.Success();
         }
 
