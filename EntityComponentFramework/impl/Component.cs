@@ -130,9 +130,10 @@ namespace cpGames.core.EntityComponentFramework.impl
             var propertyInfos = GetType().GetProperties().Where(x => x.HasAttribute<RequiredComponentAttribute>());
             foreach (var propertyInfo in propertyInfos)
             {
-                if (propertyInfo.PropertyType == GetType())
+                if (propertyInfo.PropertyType.IsInstanceOfType(this))
                 {
-                    return Outcome.Fail($"Component <{GetType().Name}> has a property that references itself.");
+                    propertyInfo.SetValue(this, this, null);
+                    continue;
                 }
                 var connectPropertyOutcome = ConnectRequiredComponent(Entity, propertyInfo);
                 if (!connectPropertyOutcome)
@@ -181,7 +182,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 {
                     continue;
                 }
-                if (component.GetType().GetProperties().Any(x => x.PropertyType == GetType() && x.GetValue(component, null) == this))
+                if (component.GetType().GetProperties().Any(x => x.PropertyType.IsInstanceOfType(this) && x.GetValue(component, null) == this))
                 {
                     return Outcome.Fail($"Component <{GetType().Name}> can not be removed, it is still required by <{component.GetType().Name}>.");
                 }
