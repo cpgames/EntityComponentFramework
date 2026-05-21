@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
@@ -13,6 +14,9 @@ namespace cpGames.core.EntityComponentFramework.impl
 
         #region Properties
         public Id Id { get; }
+
+        public ISignalOutcome<IComponent> ComponentAddedSignal { get; } = new LazySignalOutcome<IComponent>();
+        public ISignalOutcome<IComponent> ComponentRemovedSignal { get; } = new LazySignalOutcome<IComponent>();
 
         public IProperty this[string name]
         {
@@ -245,7 +249,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return outcome;
                 }
                 _components.Add(component);
-                return Outcome.Success();
+                return ComponentAddedSignal.DispatchResult(component);
             }
         }
 
@@ -272,7 +276,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return outcome;
                 }
                 _components.Add(component);
-                return Outcome.Success();
+                return ComponentAddedSignal.DispatchResult(component);
             }
         }
 
@@ -306,7 +310,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return outcome;
                 }
                 _components.Add(component);
-                return Outcome.Success();
+                return ComponentAddedSignal.DispatchResult(component);
             }
         }
 
@@ -364,7 +368,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     return outcome;
                 }
                 _components.Remove(component);
-                return Outcome.Success();
+                return ComponentRemovedSignal.DispatchResult(component);
             }
         }
 
@@ -489,12 +493,18 @@ namespace cpGames.core.EntityComponentFramework.impl
                 }
                 while (_components.Count > 0)
                 {
-                    var outcome = _components[_components.Count - 1].Disconnect();
+                    var component = _components[_components.Count - 1];
+                    var outcome = component.Disconnect();
                     if (!outcome)
                     {
                         return outcome;
                     }
-                    _components.Remove(_components[_components.Count - 1]);
+                    _components.Remove(component);
+                    outcome = ComponentRemovedSignal.DispatchResult(component);
+                    if (!outcome)
+                    {
+                        return outcome;
+                    }
                 }
             }
             return Outcome.Success();
