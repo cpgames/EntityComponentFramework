@@ -3,9 +3,10 @@
     public class IdProperty : Property<Id>, IIdProperty
     {
         #region Constructors
-        public IdProperty(Entity owner, string name) : base(owner, name, Id.INVALID) 
+        public IdProperty(Entity owner, string name) : base(owner, name, Id.INVALID)
         {
             _converters.Add(new StringToIdConverter());
+            _converters.Add(new ReferenceToIdConverter());
         }
         #endregion
 
