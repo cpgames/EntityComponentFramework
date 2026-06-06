@@ -6,6 +6,8 @@
         Outcome ResolveReference<TComponent>(Id id, out TComponent? component)
             where TComponent : class, IComponent;
 
+        Outcome ResolveEntity(Id id, out impl.Entity? entity);
+
         Outcome ConvertReferenceToId(IComponent component, out Id id);
         #endregion
     }
