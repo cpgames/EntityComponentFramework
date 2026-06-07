@@ -385,6 +385,19 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
+        public Outcome TryRemoveComponent(Type componentType)
+        {
+            lock (SyncRoot)
+            {
+                var component = _components.FirstOrDefault(x => x.GetType().IsTypeOrDerived(componentType));
+                if (component == null)
+                {
+                    return Outcome.Success();
+                }
+                return RemoveComponent(component);
+            }
+        }
+
         public Outcome RemoveComponent<TComponent>() where TComponent : IComponent
         {
             lock (SyncRoot)
@@ -417,6 +430,28 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 result = _components.OfType<TComponent>().Any();
                 return Outcome.Success();
+            }
+        }
+
+        public bool HasComponent(Type componentType)
+        {
+            lock (SyncRoot)
+            {
+                return _components.Any(x => x.GetType().IsTypeOrDerived(componentType));
+            }
+        }
+
+        public Outcome HasComponent(Type componentType, out bool result)
+        {
+            result = HasComponent(componentType);
+            return Outcome.Success();
+        }
+
+        public bool HasComponents(IEnumerable<Type> componentTypes)
+        {
+            lock (SyncRoot)
+            {
+                return componentTypes.All(componentType => _components.Any(x => x.GetType().IsTypeOrDerived(componentType)));
             }
         }
 
