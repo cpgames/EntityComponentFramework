@@ -3,15 +3,15 @@ using System.Globalization;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class StringToDateTimeConverter : IPropertyConverter<DateTime>
+    public class StringToDateTimeConverter : IConverter
     {
-        #region IPropertyConverter<DateTime> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(string);
+            return sourceType == typeof(string) && targetType == typeof(DateTime);
         }
 
-        public Outcome Convert(object? data, out DateTime value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = default;
 
@@ -21,10 +21,11 @@ namespace cpGames.core.EntityComponentFramework.impl
                     str,
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.None,
-                    out value))
+                    out var dateTime))
                 {
                     return Outcome.Fail($"Failed to convert <{str}> to DateTime.");
                 }
+                value = dateTime;
                 return Outcome.Success();
             }
 
@@ -32,4 +33,4 @@ namespace cpGames.core.EntityComponentFramework.impl
         }
         #endregion
     }
-} 
+}

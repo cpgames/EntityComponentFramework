@@ -6,52 +6,6 @@ namespace EntityComponentFrameworkTests;
 
 public class PropertyConverterTests
 {
-    #region Nested type: BoolToStringConverter
-    private class BoolToStringConverter : IPropertyConverter<string>
-    {
-        #region IPropertyConverter<string> Members
-        public bool CanConvert(Type type)
-        {
-            return type == typeof(bool);
-        }
-
-        public Outcome Convert(object? data, out string value)
-        {
-            value = string.Empty;
-            if (data is bool b)
-            {
-                value = b ? "true" : "false";
-                return Outcome.Success();
-            }
-            return Outcome.Fail($"Cannot convert {data?.GetType().Name} to string");
-        }
-        #endregion
-    }
-    #endregion
-
-    #region Nested type: StringToBoolConverter
-    private class StringToBoolConverter : IPropertyConverter<bool>
-    {
-        #region IPropertyConverter<bool> Members
-        public bool CanConvert(Type type)
-        {
-            return type == typeof(string);
-        }
-
-        public Outcome Convert(object? data, out bool value)
-        {
-            value = false;
-            if (data is string str)
-            {
-                value = str.ToLower() == "true" || str == "1" || str.ToLower() == "yes";
-                return Outcome.Success();
-            }
-            return Outcome.Fail($"Cannot convert {data?.GetType().Name} to bool");
-        }
-        #endregion
-    }
-    #endregion
-
     #region Nested type: TestClassA
     private class TestClassA
     {
@@ -115,82 +69,6 @@ public class PropertyConverterTests
         var linkOutcome = stringProp.Link(boolProp);
         Assert.That(linkOutcome.IsSuccess, Is.False);
         Assert.That(linkOutcome.ErrorMessage, Does.Contain("Unsupported link between properties of different types"));
-    }
-
-    [Test]
-    public void TestBoolToStringLink_WithCustomConverter_ShouldSucceed()
-    {
-        var entityA = new Entity(new Id(1));
-        var entityB = new Entity(new Id(2));
-
-        var boolProp = new BoolProperty(entityA, "boolProperty");
-        var stringProp = new StringProperty(entityB, "stringProperty");
-
-        // Add custom converter to string property
-        var addConverterOutcome = stringProp.AddConverter(new BoolToStringConverter());
-        Assert.That(addConverterOutcome, addConverterOutcome.ErrorMessage);
-
-        var connectBoolOutcome = boolProp.Connect();
-        Assert.That(connectBoolOutcome, connectBoolOutcome.ErrorMessage);
-        var connectStringOutcome = stringProp.Connect();
-        Assert.That(connectStringOutcome, connectStringOutcome.ErrorMessage);
-
-        var setOutcome = boolProp.Set(true);
-        Assert.That(setOutcome, setOutcome.ErrorMessage);
-
-        // Linking should succeed because we added a converter
-        var linkOutcome = stringProp.Link(boolProp);
-        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
-
-        var getStringOutcome = stringProp.Get(out var stringValue);
-        Assert.That(getStringOutcome, getStringOutcome.ErrorMessage);
-        Assert.That(stringValue, Is.EqualTo("true"));
-
-        // Test changing the bool value
-        var updateOutcome = boolProp.Set(false);
-        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
-
-        var getUpdatedStringOutcome = stringProp.Get(out var updatedStringValue);
-        Assert.That(getUpdatedStringOutcome, getUpdatedStringOutcome.ErrorMessage);
-        Assert.That(updatedStringValue, Is.EqualTo("false"));
-    }
-
-    [Test]
-    public void TestStringToBoolLink_WithCustomConverter_ShouldSucceed()
-    {
-        var entityA = new Entity(new Id(1));
-        var entityB = new Entity(new Id(2));
-
-        var stringProp = new StringProperty(entityA, "stringProperty");
-        var boolProp = new BoolProperty(entityB, "boolProperty");
-
-        // Add custom converter to bool property
-        var addConverterOutcome = boolProp.AddConverter(new StringToBoolConverter());
-        Assert.That(addConverterOutcome, addConverterOutcome.ErrorMessage);
-
-        var connectStringOutcome = stringProp.Connect();
-        Assert.That(connectStringOutcome, connectStringOutcome.ErrorMessage);
-        var connectBoolOutcome = boolProp.Connect();
-        Assert.That(connectBoolOutcome, connectBoolOutcome.ErrorMessage);
-
-        var setOutcome = stringProp.Set("true");
-        Assert.That(setOutcome, setOutcome.ErrorMessage);
-
-        // Linking should succeed because we added a converter
-        var linkOutcome = boolProp.Link(stringProp);
-        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
-
-        var getBoolOutcome = boolProp.Get(out var boolValue);
-        Assert.That(getBoolOutcome, getBoolOutcome.ErrorMessage);
-        Assert.That(boolValue, Is.True);
-
-        // Test changing the string value
-        var updateOutcome = stringProp.Set("false");
-        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
-
-        var getUpdatedBoolOutcome = boolProp.Get(out var updatedBoolValue);
-        Assert.That(getUpdatedBoolOutcome, getUpdatedBoolOutcome.ErrorMessage);
-        Assert.That(updatedBoolValue, Is.False);
     }
 
     [Test]

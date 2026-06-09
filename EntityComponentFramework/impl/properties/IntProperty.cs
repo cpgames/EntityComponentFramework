@@ -53,9 +53,8 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class IntProperty : Property<int>, IIntProperty
     {
         #region Constructors
-        public IntProperty(Entity owner, string name) : base(owner, name, 0) 
+        public IntProperty(Entity owner, string name) : base(owner, name, 0)
         {
-            _converters.Add(new LongToIntConverter());
         }
         #endregion
 

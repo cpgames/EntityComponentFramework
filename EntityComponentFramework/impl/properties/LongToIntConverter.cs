@@ -2,15 +2,15 @@ using System;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class LongToIntConverter : IPropertyConverter<int>
+    public class LongToIntConverter : IConverter
     {
-        #region IPropertyConverter<int> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(long);
+            return sourceType == typeof(long) && targetType == typeof(int);
         }
 
-        public Outcome Convert(object? data, out int value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = default;
 
@@ -24,4 +24,4 @@ namespace cpGames.core.EntityComponentFramework.impl
         }
         #endregion
     }
-} 
+}

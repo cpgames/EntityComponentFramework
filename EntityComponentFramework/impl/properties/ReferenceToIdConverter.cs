@@ -2,17 +2,17 @@ using System;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class ReferenceToIdConverter : IPropertyConverter<Id>
+    public class ReferenceToIdConverter : IConverter
     {
-        #region IPropertyConverter<Id> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return typeof(IComponent).IsAssignableFrom(type);
+            return sourceType == typeof(Entity) && targetType == typeof(Id);
         }
 
-        public Outcome Convert(object? data, out Id value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
-            value = data is IComponent component ? component.Id : Id.INVALID;
+            value = data is Entity entity ? entity.Id : Id.INVALID;
             return Outcome.Success();
         }
         #endregion

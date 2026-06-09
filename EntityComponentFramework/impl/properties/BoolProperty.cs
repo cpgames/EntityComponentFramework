@@ -54,9 +54,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Constructors
         public BoolProperty(Entity owner, string name) : base(owner, name, false)
         {
-            _converters.Add(new IntToBoolConverter());
-            _converters.Add(new LongToBoolConverter());
-            _converters.Add(new ByteToBoolConverter());
         }
         #endregion
 

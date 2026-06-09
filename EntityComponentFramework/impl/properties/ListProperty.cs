@@ -7,14 +7,9 @@ namespace cpGames.core.EntityComponentFramework.impl
 {
     public class ListProperty<TElementValue> : Property<List<TElementValue>>, IListProperty<TElementValue>
     {
-        #region Fields
-        private readonly ListConverter<TElementValue> _listConverter = new();
-        #endregion
-
         #region Constructors
         public ListProperty(Entity owner, string name) : base(owner, name, new List<TElementValue>())
         {
-            _converters.Add(_listConverter);
             EntryAddedSignal.AddCommand((val, index) =>
                 EntryObjAddedSignal.DispatchResult(val!, index) &&
                 EntryCountChangedSignal.DispatchResult());

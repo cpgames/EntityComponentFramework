@@ -2,16 +2,15 @@ using System;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class LongToEnumConverter<TEnum> : IPropertyConverter<TEnum>
-        where TEnum : struct
+    public class LongToEnumConverter : IConverter
     {
-        #region IPropertyConverter<TEnum> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(long);
+            return sourceType == typeof(long) && targetType.IsEnum;
         }
 
-        public Outcome Convert(object? data, out TEnum value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = default;
 
@@ -19,17 +18,17 @@ namespace cpGames.core.EntityComponentFramework.impl
             {
                 try
                 {
-                    value = (TEnum)Enum.GetValues(typeof(TEnum)).GetValue(dataLong);
+                    value = Enum.ToObject(targetType, dataLong);
                     return Outcome.Success();
                 }
                 catch (Exception e)
                 {
-                    return Outcome.Fail($"Failed to convert <{dataLong}> to <{typeof(TEnum).Name}>: {e.Message}");
+                    return Outcome.Fail($"Failed to convert <{dataLong}> to <{targetType.Name}>: {e.Message}");
                 }
             }
 
-            return Outcome.Fail($"Cannot convert {data?.GetType().Name} to {typeof(TEnum).Name}");
+            return Outcome.Fail($"Cannot convert {data?.GetType().Name} to {targetType.Name}");
         }
         #endregion
     }
-} 
+}

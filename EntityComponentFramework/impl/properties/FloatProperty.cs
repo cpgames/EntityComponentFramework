@@ -52,11 +52,8 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class FloatProperty : Property<float>, IFloatProperty
     {
         #region Constructors
-        public FloatProperty(Entity owner, string name) : base(owner, name, 0f) 
+        public FloatProperty(Entity owner, string name) : base(owner, name, 0f)
         {
-            _converters.Add(new DoubleToFloatConverter());
-            _converters.Add(new IntToFloatConverter());
-            _converters.Add(new LongToFloatConverter());
         }
         #endregion
 

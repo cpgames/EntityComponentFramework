@@ -2,14 +2,14 @@ using System;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class StringToAddressConverter : IPropertyConverter<Address>
+    public class StringToAddressConverter : IConverter
     {
-        public bool CanConvert(Type type)
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(string);
+            return sourceType == typeof(string) && targetType == typeof(Address);
         }
 
-        public Outcome Convert(object? data, out Address value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = Address.INVALID;
 
@@ -22,4 +22,4 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Fail($"Cannot convert {data?.GetType().Name} to Address");
         }
     }
-} 
+}

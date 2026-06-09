@@ -87,8 +87,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Constructors
         protected JsonProperty(Entity owner, string name, TValue? defaultValue) : base(owner, name, defaultValue)
         {
-            _converters.Add(new StringToJsonConverter<TValue>());
-            _converters.Add(new BytesToJsonConverter<TValue>());
         }
         #endregion
 

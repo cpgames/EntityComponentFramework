@@ -49,7 +49,7 @@ namespace cpGames.core.EntityComponentFramework
         Outcome Get(out TValue? value);
         Outcome GetNonDefault(out TValue? value);
         Outcome Equals(TValue value, out bool result);
-        Outcome AddConverter(IPropertyConverter<TValue> converter);
+        Outcome AddConverter(IConverter converter);
         #endregion
     }
 }

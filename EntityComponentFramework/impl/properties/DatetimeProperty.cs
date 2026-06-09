@@ -6,9 +6,8 @@ namespace cpGames.core.EntityComponentFramework.impl
     public class DateTimeProperty : Property<DateTime>, IDateTimeProperty
     {
         #region Constructors
-        public DateTimeProperty(Entity owner, string name) : base(owner, name, default) 
+        public DateTimeProperty(Entity owner, string name) : base(owner, name, default)
         {
-            _converters.Add(new StringToDateTimeConverter());
         }
         #endregion
 

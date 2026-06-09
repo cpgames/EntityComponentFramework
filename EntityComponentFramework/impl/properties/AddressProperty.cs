@@ -3,9 +3,8 @@
     public class AddressProperty : Property<Address>, IAddressProperty
     {
         #region Constructors
-        public AddressProperty(Entity owner, string name) : base(owner, name, Address.INVALID) 
+        public AddressProperty(Entity owner, string name) : base(owner, name, Address.INVALID)
         {
-            _converters.Add(new StringToAddressConverter());
         }
         #endregion
 

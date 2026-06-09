@@ -2,14 +2,14 @@ using System;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class ByteToBoolConverter : IPropertyConverter<bool>
+    public class ByteToBoolConverter : IConverter
     {
-        public bool CanConvert(Type type)
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(byte) || type == typeof(sbyte);
+            return (sourceType == typeof(byte) || sourceType == typeof(sbyte)) && targetType == typeof(bool);
         }
 
-        public Outcome Convert(object? data, out bool value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = false;
             if (data is byte b)

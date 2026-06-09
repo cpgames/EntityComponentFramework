@@ -2,15 +2,15 @@ using System;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class DoubleToFloatConverter : IPropertyConverter<float>
+    public class DoubleToFloatConverter : IConverter
     {
-        #region IPropertyConverter<float> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(double);
+            return sourceType == typeof(double) && targetType == typeof(float);
         }
 
-        public Outcome Convert(object? data, out float value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = default;
 
@@ -24,4 +24,4 @@ namespace cpGames.core.EntityComponentFramework.impl
         }
         #endregion
     }
-} 
+}

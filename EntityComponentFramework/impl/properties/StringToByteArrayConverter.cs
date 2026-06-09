@@ -3,15 +3,15 @@ using System.Text;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class StringToByteArrayConverter : IPropertyConverter<byte[]>
+    public class StringToByteArrayConverter : IConverter
     {
-        #region IPropertyConverter<byte[]> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(string);
+            return sourceType == typeof(string) && targetType == typeof(byte[]);
         }
 
-        public Outcome Convert(object? data, out byte[]? value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = null;
 
@@ -25,4 +25,4 @@ namespace cpGames.core.EntityComponentFramework.impl
         }
         #endregion
     }
-} 
+}

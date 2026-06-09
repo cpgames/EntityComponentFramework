@@ -4,14 +4,14 @@ using Newtonsoft.Json;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class BytesToJsonConverter<TValue> : IPropertyConverter<TValue?>
+    public class BytesToJsonConverter : IConverter
     {
-        public bool CanConvert(Type type)
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(byte[]);
+            return sourceType == typeof(byte[]) && targetType.IsClass;
         }
 
-        public Outcome Convert(object? data, out TValue? value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = default;
 
@@ -29,8 +29,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                     {
                         strData = strData.Substring(1);
                     }
-                    var valueObj = JsonConvert.DeserializeObject(strData, typeof(TValue))!;
-                    value = (TValue)valueObj;
+                    value = JsonConvert.DeserializeObject(strData, targetType);
                 }
                 catch (Exception e)
                 {
@@ -40,7 +39,7 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
 
-            return Outcome.Fail($"Cannot convert {data?.GetType().Name} to {typeof(TValue).Name}");
+            return Outcome.Fail($"Cannot convert {data?.GetType().Name} to {targetType.Name}");
         }
     }
-} 
+}

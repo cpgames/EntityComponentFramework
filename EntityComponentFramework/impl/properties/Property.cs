@@ -10,7 +10,7 @@ namespace cpGames.core.EntityComponentFramework.impl
         #region Fields
         private IProperty? _linkedProperty;
         private TValue? _defaultValue;
-        protected readonly List<IPropertyConverter<TValue>> _converters = new();
+        protected readonly List<IConverter> _converters = new();
         protected TValue? _value;
         #endregion
 
@@ -313,7 +313,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        public Outcome AddConverter(IPropertyConverter<TValue> converter)
+        public Outcome AddConverter(IConverter converter)
         {
             if (_converters.Any(x => x.GetType() == converter.GetType()))
             {
@@ -354,7 +354,8 @@ namespace cpGames.core.EntityComponentFramework.impl
         protected Outcome CanLink(IProperty otherProperty)
         {
             if (otherProperty.ValueType == ValueType ||
-                _converters.Any(converter => converter.CanConvert(otherProperty.ValueType)))
+                _converters.Any(converter => converter.CanConvert(otherProperty.ValueType, ValueType)) ||
+                PropertyConverters.Find(otherProperty.ValueType, ValueType) != null)
             {
                 return Outcome.Success();
             }
@@ -394,14 +395,17 @@ namespace cpGames.core.EntityComponentFramework.impl
                 value = Clone(newValue);
                 return Outcome.Success();
             }
-            var converter = _converters.FirstOrDefault(x => x.CanConvert(data.GetType()));
+            var converter = _converters.FirstOrDefault(x => x.CanConvert(data.GetType(), typeof(TValue))) ??
+                            PropertyConverters.Find(data.GetType(), typeof(TValue));
             if (converter != null)
             {
-                var outcome = converter.Convert(data, out value);
+                var outcome = converter.Convert(data, typeof(TValue), out var boxed);
                 if (outcome)
                 {
+                    value = (TValue?)boxed;
                     return Outcome.Success();
                 }
+                value = default;
                 return outcome;
             }
             value = default;

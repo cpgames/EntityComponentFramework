@@ -1,23 +1,24 @@
-﻿using System;
+using System;
 using cpGames.core.RapidIoC;
 
 namespace cpGames.core.EntityComponentFramework.impl
 {
-    public class EntityConverter : IPropertyConverter<Entity?>
+    public class EntityConverter : IConverter
     {
         #region Fields
         private IReferenceResolver? _referenceResolver;
         #endregion
 
-        #region IPropertyConverter<Entity?> Members
-        public bool CanConvert(Type type)
+        #region IConverter Members
+        public bool CanConvert(Type sourceType, Type targetType)
         {
-            return type == typeof(byte[]) ||
-                   type == typeof(string) ||
-                   type == typeof(Id);
+            return (sourceType == typeof(byte[]) ||
+                    sourceType == typeof(string) ||
+                    sourceType == typeof(Id)) &&
+                   targetType == typeof(Entity);
         }
 
-        public Outcome Convert(object? data, out Entity? value)
+        public Outcome Convert(object? data, Type targetType, out object? value)
         {
             value = null;
 
@@ -47,16 +48,21 @@ namespace cpGames.core.EntityComponentFramework.impl
                     Rapid.GetBindingValue(Rapid.RootKey, out _referenceResolver);
         }
 
-        private Outcome GetEntityFromId(Id id, out Entity? value)
+        private Outcome GetEntityFromId(Id id, out object? value)
         {
             value = null;
             if (!id.IsValid)
             {
                 return Outcome.Success();
             }
-            return
-                GetReferenceResolver() &&
-                _referenceResolver!.ResolveEntity(id, out value);
+            var outcome = GetReferenceResolver();
+            if (!outcome)
+            {
+                return outcome;
+            }
+            outcome = _referenceResolver!.ResolveEntity(id, out var entity);
+            value = entity;
+            return outcome;
         }
         #endregion
     }

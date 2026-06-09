@@ -6,8 +6,6 @@
         #region Constructors
         protected EnumProperty(Entity owner, string name, TEnum defaultValue) : base(owner, name, defaultValue)
         {
-            _converters.Add(new StringToEnumConverter<TEnum>());
-            _converters.Add(new LongToEnumConverter<TEnum>());
         }
         #endregion
 
