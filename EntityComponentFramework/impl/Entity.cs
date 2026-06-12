@@ -136,6 +136,18 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
+        public Outcome RemoveProperty(string name)
+        {
+            lock (SyncRoot)
+            {
+                if (!_properties.Remove(name))
+                {
+                    return Outcome.Fail($"Property <{name}> does not exist in <{this}>.");
+                }
+                return Outcome.Success();
+            }
+        }
+
         public bool HasProperty(string name)
         {
             lock (SyncRoot)
@@ -518,14 +530,6 @@ namespace cpGames.core.EntityComponentFramework.impl
         {
             lock (SyncRoot)
             {
-                foreach (var property in _properties.Values)
-                {
-                    var outcome = property.Disconnect();
-                    if (!outcome)
-                    {
-                        return outcome;
-                    }
-                }
                 while (_components.Count > 0)
                 {
                     var component = _components[_components.Count - 1];
@@ -541,6 +545,15 @@ namespace cpGames.core.EntityComponentFramework.impl
                         return outcome;
                     }
                 }
+                foreach (var property in _properties.Values.ToList())
+                {
+                    var outcome = property.Disconnect();
+                    if (!outcome)
+                    {
+                        return outcome;
+                    }
+                }
+                _properties.Clear();
             }
             return Outcome.Success();
         }

@@ -51,6 +51,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             var disconnectInternalOutcome =
                 BeginDisconnectedSignal.DispatchResult(this) &&
                 CheckIfStillRequired(Entity) &&
+                DisconnectProperties() &&
                 DisconnectInternal();
             if (!disconnectInternalOutcome)
             {
@@ -172,6 +173,26 @@ namespace cpGames.core.EntityComponentFramework.impl
                 return Outcome.Success();
             }
             return Outcome.Fail($"Component <{GetType().Name}> is missing required component <{propertyInfo.PropertyType.Name}>.");
+        }
+
+        private Outcome DisconnectProperties()
+        {
+            foreach (var property in _properties)
+            {
+                var sharedWithOther = Entity.Components.Any(x => x != this && x.Properties.Contains(property));
+                if (sharedWithOther)
+                {
+                    continue;
+                }
+                var outcome =
+                    property.Disconnect() &&
+                    Entity.RemoveProperty(property.Name);
+                if (!outcome)
+                {
+                    return outcome;
+                }
+            }
+            return Outcome.Success();
         }
 
         private Outcome CheckIfStillRequired(Entity target)
