@@ -141,6 +141,21 @@ namespace cpGames.core.EntityComponentFramework.impl
             return EntryRemovedSignal.DispatchResult(entry);
         }
 
+        public Outcome TryRemoveEntry(TElementValue entry)
+        {
+            var outcome = Get(out var value);
+            if (!outcome)
+            {
+                return outcome;
+            }
+            if (!value!.Contains(entry))
+            {
+                return Outcome.Success();
+            }
+            value.Remove(entry);
+            return EntryRemovedSignal.DispatchResult(entry);
+        }
+
         public Outcome RemoveEntry(IListProperty<TElementValue>.FilterDelegate filter)
         {
             var outcome = Get(out var value);
