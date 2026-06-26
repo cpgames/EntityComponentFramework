@@ -467,6 +467,16 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
+        public bool HasComponents<TComponent1, TComponent2>()
+            where TComponent1 : IComponent
+            where TComponent2 : IComponent
+        {
+            lock (SyncRoot)
+            {
+                return _components.OfType<TComponent1>().Any() && _components.OfType<TComponent2>().Any();
+            }
+        }
+
         public Outcome GetComponent(Type componentType, out IComponent? component)
         {
             lock (SyncRoot)
@@ -505,6 +515,26 @@ namespace cpGames.core.EntityComponentFramework.impl
             }
         }
 
+        public Outcome GetComponents<TComponent1, TComponent2>(out TComponent1? component1, out TComponent2? component2)
+            where TComponent1 : IComponent
+            where TComponent2 : IComponent
+        {
+            lock (SyncRoot)
+            {
+                component1 = _components.OfType<TComponent1>().FirstOrDefault();
+                component2 = _components.OfType<TComponent2>().FirstOrDefault();
+                if (component1 == null)
+                {
+                    return Outcome.Fail($"No component of type <{typeof(TComponent1)}> exists.");
+                }
+                if (component2 == null)
+                {
+                    return Outcome.Fail($"No component of type <{typeof(TComponent2)}> exists.");
+                }
+                return Outcome.Success();
+            }
+        }
+
         public Outcome TryGetComponent<TComponent>(out TComponent? component) where TComponent : IComponent
         {
             lock (SyncRoot)
@@ -513,6 +543,32 @@ namespace cpGames.core.EntityComponentFramework.impl
                     .OfType<TComponent>()
                     .FirstOrDefault();
                 return Outcome.Success();
+            }
+        }
+
+        public bool TryGetComponents<TComponent1, TComponent2>(out TComponent1? component1, out TComponent2? component2)
+            where TComponent1 : IComponent
+            where TComponent2 : IComponent
+        {
+            lock (SyncRoot)
+            {
+                component1 = _components.OfType<TComponent1>().FirstOrDefault();
+                component2 = _components.OfType<TComponent2>().FirstOrDefault();
+                return component1 != null && component2 != null;
+            }
+        }
+
+        public bool TryGetComponents<TComponent1, TComponent2, TComponent3>(out TComponent1? component1, out TComponent2? component2, out TComponent3? component3)
+            where TComponent1 : IComponent
+            where TComponent2 : IComponent
+            where TComponent3 : IComponent
+        {
+            lock (SyncRoot)
+            {
+                component1 = _components.OfType<TComponent1>().FirstOrDefault();
+                component2 = _components.OfType<TComponent2>().FirstOrDefault();
+                component3 = _components.OfType<TComponent3>().FirstOrDefault();
+                return component1 != null && component2 != null && component3 != null;
             }
         }
 

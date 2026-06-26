@@ -156,7 +156,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return EntryRemovedSignal.DispatchResult(entry);
         }
 
-        public Outcome RemoveEntry(IListProperty<TElementValue>.FilterDelegate filter)
+        public Outcome RemoveEntry(IReadonlyListProperty<TElementValue>.FilterDelegate filter)
         {
             var outcome = Get(out var value);
             if (!outcome)
@@ -190,7 +190,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        public Outcome HasEntry(IListProperty<TElementValue>.FilterDelegate filter, out bool result)
+        public Outcome HasEntry(IReadonlyListProperty<TElementValue>.FilterDelegate filter, out bool result)
         {
             result = false;
             var outcome = Get(out var value);
@@ -213,7 +213,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        public Outcome FindEntry(IListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
+        public Outcome FindEntry(IReadonlyListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
         {
             entry = default;
             var outcome = Get(out var values);
@@ -247,7 +247,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Fail("No entry found in list");
         }
 
-        public Outcome TryFindEntry(IListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
+        public Outcome TryFindEntry(IReadonlyListProperty<TElementValue>.FilterDelegate? filter, out TElementValue? entry)
         {
             entry = default;
             var outcome = Get(out var values);
@@ -279,7 +279,7 @@ namespace cpGames.core.EntityComponentFramework.impl
             return Outcome.Success();
         }
 
-        public Outcome FindEntries(IListProperty<TElementValue>.FilterDelegate filter, out List<TElementValue> entries)
+        public Outcome FindEntries(IReadonlyListProperty<TElementValue>.FilterDelegate filter, out List<TElementValue> entries)
         {
             entries = new List<TElementValue>();
             var outcome = Get(out var values);
