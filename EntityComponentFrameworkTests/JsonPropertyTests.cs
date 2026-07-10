@@ -3,180 +3,262 @@ using cpGames.core.EntityComponentFramework.impl;
 
 namespace EntityComponentFrameworkTests;
 
+[TestFixture]
 public class JsonPropertyTests
 {
-    #region Nested type: TestClass
-    private class TestClass
-    {
-        #region Fields
-        public string name = string.Empty;
-        public int value;
-        public bool isActive;
-        #endregion
-    }
-    #endregion
+    private const string InitialName = "InitialName";
+    private const int InitialValue = 42;
 
-    #region Nested type: TestJsonProperty
-    private class TestJsonProperty : JsonProperty<TestClass>
-    {
-        #region Constructors
-        public TestJsonProperty(Entity owner, string name) : base(owner, name, new TestClass()) { }
-        #endregion
-    }
-    #endregion
+    private TestJsonProperty _propA = null!;
+    private TestJsonProperty _propB = null!;
 
-    #region Methods
     [SetUp]
-    public void Setup() { }
+    public void SetUp()
+    {
+        _propA = CreateProperty(1, "testProperty");
+        _propB = CreateProperty(2, "linkedProperty");
+
+        var connectAOutcome = _propA.Connect();
+        Assert.That(connectAOutcome, connectAOutcome.ErrorMessage);
+
+        var connectBOutcome = _propB.Connect();
+        Assert.That(connectBOutcome, connectBOutcome.ErrorMessage);
+    }
 
     [Test]
-    public void TestJsonLink()
+    public void Link_WhenPropertiesAreConnected_MarksTargetAsLinked()
     {
-        var entityA = new Entity(new Id(1));
-        var entityB = new Entity(new Id(2));
+        // Arrange
+        SetInitialValueAndLink();
 
-        var propA = new TestJsonProperty(entityA, "testProperty");
-        var propB = new TestJsonProperty(entityB, "linkedProperty");
+        // Act
+        var isLinked = _propB.IsLinked();
 
-        var connectAOutcome = propA.Connect();
-        Assert.That(connectAOutcome, connectAOutcome.ErrorMessage);
-        var connectBOutcome = propB.Connect();
-        Assert.That(connectBOutcome, connectBOutcome.ErrorMessage);
+        // Assert
+        Assert.That(isLinked, Is.True);
+    }
 
-        var testObject = new TestClass
-        {
-            name = "InitialName",
-            value = 42,
-            isActive = true
-        };
+    [Test]
+    public void Link_WhenSourceHasValue_CopiesValueToTarget()
+    {
+        // Arrange
+        SetInitialValueAndLink();
 
-        var setOutcome = propA.Set(testObject);
-        Assert.That(setOutcome, setOutcome.ErrorMessage);
+        // Act
+        var valueB = GetValue(_propB);
 
-        var linkOutcome = propB.Link(propA);
-        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
+        // Assert
+        AssertTestValue(valueB, InitialName, InitialValue, true);
+    }
 
-        var getAOutcome = propA.Get(out var valueA);
-        Assert.That(getAOutcome, getAOutcome.ErrorMessage);
-        var getBOutcome = propB.Get(out var valueB);
-        Assert.That(getBOutcome, getBOutcome.ErrorMessage);
-        Assert.Multiple(() =>
-        {
-            Assert.That(valueA, Is.Not.Null);
-            Assert.That(valueA!.name, Is.EqualTo("InitialName"));
-            Assert.That(valueA.value, Is.EqualTo(42));
-            Assert.That(valueA.isActive, Is.True);
-            Assert.That(valueB, Is.Not.Null);
-            Assert.That(valueB!.name, Is.EqualTo("InitialName"));
-            Assert.That(valueB.value, Is.EqualTo(42));
-            Assert.That(valueB.isActive, Is.True);
-            Assert.That(propB.IsLinked(), Is.True);
-        });
+    [Test]
+    public void UpdateValue_WhenSourceIsModified_UpdatesSourceValue()
+    {
+        // Arrange
+        var sourceValue = SetInitialValueAndLink();
 
-        testObject.name = "ModifiedName";
-        testObject.value = 100;
+        sourceValue.Name = "ModifiedName";
+        sourceValue.Value = 100;
 
-        var updateOutcome = propA.UpdateValue();
+        // Act
+        var updateOutcome = _propA.UpdateValue();
+
+        // Assert
         Assert.That(updateOutcome, updateOutcome.ErrorMessage);
 
-        var getAUpdatedOutcome = propA.Get(out var updatedValueA);
-        Assert.That(getAUpdatedOutcome, getAUpdatedOutcome.ErrorMessage);
-        var getBUpdatedOutcome = propB.Get(out var updatedValueB);
-        Assert.That(getBUpdatedOutcome, getBUpdatedOutcome.ErrorMessage);
-        Assert.Multiple(() =>
-        {
-            Assert.That(updatedValueA, Is.Not.Null);
-            Assert.That(updatedValueA!.name, Is.EqualTo("ModifiedName"));
-            Assert.That(updatedValueA.value, Is.EqualTo(100));
-            Assert.That(updatedValueA.isActive, Is.True);
-            Assert.That(updatedValueB, Is.Not.Null);
-            Assert.That(updatedValueB!.name, Is.EqualTo("ModifiedName"));
-            Assert.That(updatedValueB.value, Is.EqualTo(100));
-            Assert.That(updatedValueB.isActive, Is.True);
-            Assert.That(updatedValueA.name, Is.EqualTo(updatedValueB.name));
-            Assert.That(updatedValueA.value, Is.EqualTo(updatedValueB.value));
-            Assert.That(updatedValueA.isActive, Is.EqualTo(updatedValueB.isActive));
-        });
+        var updatedValueA = GetValue(_propA);
+        AssertTestValue(updatedValueA, "ModifiedName", 100, true);
     }
 
     [Test]
-    public void TestJsonLinkModifyPropB()
+    public void UpdateValue_WhenSourceIsModified_PropagatesValueToLinkedTarget()
     {
-        var entityA = new Entity(new Id(1));
-        var entityB = new Entity(new Id(2));
+        // Arrange
+        var sourceValue = SetInitialValueAndLink();
 
-        var propA = new TestJsonProperty(entityA, "testProperty");
-        var propB = new TestJsonProperty(entityB, "linkedProperty");
+        sourceValue.Name = "ModifiedName";
+        sourceValue.Value = 100;
 
-        var connectAOutcome = propA.Connect();
-        Assert.That(connectAOutcome, connectAOutcome.ErrorMessage);
-        var connectBOutcome = propB.Connect();
-        Assert.That(connectBOutcome, connectBOutcome.ErrorMessage);
+        // Act
+        var updateOutcome = _propA.UpdateValue();
 
-        var testObject = new TestClass
-        {
-            name = "InitialName",
-            value = 42,
-            isActive = true
-        };
+        // Assert
+        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
 
-        var setOutcome = propA.Set(testObject);
-        Assert.That(setOutcome, setOutcome.ErrorMessage);
+        var updatedValueB = GetValue(_propB);
+        AssertTestValue(updatedValueB, "ModifiedName", 100, true);
+    }
 
-        var linkOutcome = propB.Link(propA);
-        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
+    [Test]
+    public void UpdateValue_WhenSourceIsModified_KeepsTargetLinked()
+    {
+        // Arrange
+        var sourceValue = SetInitialValueAndLink();
 
-        var getAOutcome = propA.Get(out var valueA);
-        Assert.That(getAOutcome, getAOutcome.ErrorMessage);
-        var getBOutcome = propB.Get(out var valueB);
-        Assert.That(getBOutcome, getBOutcome.ErrorMessage);
+        sourceValue.Name = "ModifiedName";
+
+        // Act
+        var updateOutcome = _propA.UpdateValue();
+
+        // Assert
+        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
+        Assert.That(_propB.IsLinked(), Is.True);
+    }
+
+    [Test]
+    public void UpdateValue_WhenTargetIsModified_UnlinksTarget()
+    {
+        // Arrange
+        SetInitialValueAndLink();
+
+        var targetValue = GetValue(_propB);
+        targetValue.Name = "ModifiedInB";
+        targetValue.Value = 200;
+        targetValue.IsActive = false;
+
+        // Act
+        var updateOutcome = _propB.UpdateValue();
+
+        // Assert
+        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
+        Assert.That(_propB.IsLinked(), Is.False);
+    }
+
+    [Test]
+    public void UpdateValue_WhenTargetIsModified_PersistsTargetValue()
+    {
+        // Arrange
+        SetInitialValueAndLink();
+
+        var targetValue = GetValue(_propB);
+        targetValue.Name = "ModifiedInB";
+        targetValue.Value = 200;
+        targetValue.IsActive = false;
+
+        // Act
+        var updateOutcome = _propB.UpdateValue();
+
+        // Assert
+        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
+
+        var updatedTargetValue = GetValue(_propB);
+        AssertTestValue(updatedTargetValue, "ModifiedInB", 200, false);
+    }
+
+    [Test]
+    public void UpdateValue_WhenTargetIsModified_DoesNotModifySourceValue()
+    {
+        // Arrange
+        SetInitialValueAndLink();
+
+        var targetValue = GetValue(_propB);
+        targetValue.Name = "ModifiedInB";
+        targetValue.Value = 200;
+        targetValue.IsActive = false;
+
+        // Act
+        var updateOutcome = _propB.UpdateValue();
+
+        // Assert
+        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
+
+        var sourceValue = GetValue(_propA);
+        AssertTestValue(sourceValue, InitialName, InitialValue, true);
+    }
+
+    [Test]
+    public void UpdateValue_WhenSourceIsModified_SourceAndTargetHaveEquivalentValues()
+    {
+        // Arrange
+        var sourceValue = SetInitialValueAndLink();
+
+        sourceValue.Name = "ModifiedName";
+        sourceValue.Value = 100;
+
+        // Act
+        var updateOutcome = _propA.UpdateValue();
+
+        // Assert
+        Assert.That(updateOutcome, updateOutcome.ErrorMessage);
+
+        var updatedSource = GetValue(_propA);
+        var updatedTarget = GetValue(_propB);
+
         Assert.Multiple(() =>
         {
-            Assert.That(valueA, Is.Not.Null);
-            Assert.That(valueA!.name, Is.EqualTo("InitialName"));
-            Assert.That(valueA.value, Is.EqualTo(42));
-            Assert.That(valueA.isActive, Is.True);
-            Assert.That(valueB, Is.Not.Null);
-            Assert.That(valueB!.name, Is.EqualTo("InitialName"));
-            Assert.That(valueB.value, Is.EqualTo(42));
-            Assert.That(valueB.isActive, Is.True);
-            Assert.That(propB.IsLinked(), Is.True);
-        });
-
-        // Modify value in propB
-        valueB!.name = "ModifiedInB";
-        valueB.value = 200;
-        valueB.isActive = false;
-
-        var updateBOutcome = propB.UpdateValue();
-        Assert.That(updateBOutcome, updateBOutcome.ErrorMessage);
-
-        var getAFinalOutcome = propA.Get(out var finalValueA);
-        Assert.That(getAFinalOutcome, getAFinalOutcome.ErrorMessage);
-        var getBFinalOutcome = propB.Get(out var finalValueB);
-        Assert.That(getBFinalOutcome, getBFinalOutcome.ErrorMessage);
-        Assert.Multiple(() =>
-        {
-            // propA should still have original value
-            Assert.That(finalValueA, Is.Not.Null);
-            Assert.That(finalValueA!.name, Is.EqualTo("InitialName"));
-            Assert.That(finalValueA.value, Is.EqualTo(42));
-            Assert.That(finalValueA.isActive, Is.True);
-            
-            // propB should have modified value
-            Assert.That(finalValueB, Is.Not.Null);
-            Assert.That(finalValueB!.name, Is.EqualTo("ModifiedInB"));
-            Assert.That(finalValueB.value, Is.EqualTo(200));
-            Assert.That(finalValueB.isActive, Is.False);
-            
-            // Values should be different (no longer linked)
-            Assert.That(finalValueA.name, Is.Not.EqualTo(finalValueB.name));
-            Assert.That(finalValueA.value, Is.Not.EqualTo(finalValueB.value));
-            Assert.That(finalValueA.isActive, Is.Not.EqualTo(finalValueB.isActive));
-            
-            // propB should no longer be linked
-            Assert.That(propB.IsLinked(), Is.False);
+            Assert.That(updatedTarget.Name, Is.EqualTo(updatedSource.Name));
+            Assert.That(updatedTarget.Value, Is.EqualTo(updatedSource.Value));
+            Assert.That(updatedTarget.IsActive, Is.EqualTo(updatedSource.IsActive));
         });
     }
-    #endregion
+
+    private TestClass SetInitialValueAndLink()
+    {
+        var initialValue = CreateInitialValue();
+
+        var setOutcome = _propA.Set(initialValue);
+        Assert.That(setOutcome, setOutcome.ErrorMessage);
+
+        var linkOutcome = _propB.Link(_propA);
+        Assert.That(linkOutcome, linkOutcome.ErrorMessage);
+
+        return initialValue;
+    }
+
+    private static TestClass GetValue(TestJsonProperty property)
+    {
+        var getOutcome = property.Get(out var value);
+
+        Assert.That(getOutcome, getOutcome.ErrorMessage);
+        Assert.That(value, Is.Not.Null);
+
+        return value!;
+    }
+
+    private static void AssertTestValue(
+        TestClass actual,
+        string expectedName,
+        int expectedValue,
+        bool expectedIsActive)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Name, Is.EqualTo(expectedName));
+            Assert.That(actual.Value, Is.EqualTo(expectedValue));
+            Assert.That(actual.IsActive, Is.EqualTo(expectedIsActive));
+        });
+    }
+
+    private static TestClass CreateInitialValue()
+    {
+        return new TestClass
+        {
+            Name = InitialName,
+            Value = InitialValue,
+            IsActive = true
+        };
+    }
+
+    private static TestJsonProperty CreateProperty(byte entityId, string propertyName)
+    {
+        var entity = new Entity(new Id(entityId));
+        return new TestJsonProperty(entity, propertyName);
+    }
+
+    private sealed class TestClass
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public int Value { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+
+    private sealed class TestJsonProperty : JsonProperty<TestClass>
+    {
+        public TestJsonProperty(Entity owner, string name)
+            : base(owner, name, new TestClass())
+        {
+        }
+    }
 }
